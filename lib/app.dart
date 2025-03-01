@@ -1,6 +1,6 @@
 import 'package:delivery/screens/profile.dart';
-import 'package:delivery/screens/gigs.dart';
-import 'package:delivery/screens/home.dart';
+import 'package:delivery/screens/pendingDelivery.dart';
+import 'package:delivery/screens/assignedDeliveries.dart';
 import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -19,7 +19,7 @@ class _AppScreenState extends State<AppScreen> {
   // Separated tab pages for scalability
   final List<Widget> _pages = <Widget>[
     HomePage(),
-    GigsPage(),
+    PendingDeliveries(),
     ProfilePage(),
   ];
 

@@ -1,5 +1,6 @@
 import 'package:delivery/app.dart';
 import 'package:delivery/providers/auth_provider.dart';
+import 'package:delivery/providers/order_provider.dart';
 import 'package:delivery/screens/login_screen.dart';
 import 'package:delivery/screens/otp_screen.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => OrderProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
