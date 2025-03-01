@@ -1,5 +1,6 @@
 import 'package:delivery/gigs.dart';
 import 'package:delivery/home.dart';
+import 'package:delivery/profile.dart';
 import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -20,7 +21,7 @@ class _AppScreenState extends State<AppScreen> {
     // Center(child: Text('Tab 1 Content')),
     HomePage(),
     GigsPage(),
-    Center(child: Text('Tab 3 Content')),
+    ProfilePage(),
   ];
 
   void _onItemTapped(int index) {
@@ -33,7 +34,7 @@ class _AppScreenState extends State<AppScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white12,
+        backgroundColor: Colors.white,
         leadingWidth: 110,
         leading: Container(
             alignment: Alignment.center,
@@ -84,6 +85,7 @@ class _AppScreenState extends State<AppScreen> {
         children: _pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         elevation: 8,
