@@ -267,15 +267,22 @@ class OrderCard extends StatelessWidget {
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.grey[50], // Added lightest grey background color
       child: InkWell(
         onTap: () => _showOrderDetails(context),
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
+              ),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
@@ -288,30 +295,67 @@ class OrderCard extends StatelessWidget {
                   _buildStatusChip(),
                 ],
               ),
-              const Divider(height: 24),
-              _buildInfoRow(Icons.location_on_outlined, '123 Main Street, NY'),
-              const SizedBox(height: 12),
-              _buildInfoRow(Icons.access_time, 'Delivery by 2:30 PM'),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '\$25.00',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
+                  _buildInfoRow(Icons.person_outline, 'Customer: John Doe'),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: DashedDivider(),
                   ),
-                  ElevatedButton(
-                    onPressed: () => _acceptOrder(context),
-                    child: const Text('Accept'),
+                  _buildInfoRow(
+                      Icons.location_on_outlined, '123 Main Street, NY'),
+                  const SizedBox(height: 8),
+                  _buildInfoRow(Icons.access_time, 'Delivery by 2:30 PM'),
+                  const SizedBox(height: 8),
+                  _buildInfoRow(Icons.shopping_bag_outlined, '2 Items'),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: DashedDivider(),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Payment',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const Text(
+                            '\$25.00',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ],
+                      ),
+                      ElevatedButton(
+                        onPressed: () => _acceptOrder(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('Accept'),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -341,7 +385,10 @@ class OrderCard extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           text,
-          style: TextStyle(color: Colors.grey[800]),
+          style: TextStyle(
+            color: Colors.grey[800],
+            fontSize: 15,
+          ),
         ),
       ],
     );
@@ -356,6 +403,26 @@ class OrderCard extends StatelessWidget {
   void _acceptOrder(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Order accepted')),
+    );
+  }
+}
+
+// Add this new widget for a dashed divider to make it look more like a receipt
+class DashedDivider extends StatelessWidget {
+  const DashedDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: List.generate(
+        30,
+        (index) => Expanded(
+          child: Container(
+            color: index % 2 == 0 ? Colors.grey.shade300 : Colors.transparent,
+            height: 1,
+          ),
+        ),
+      ),
     );
   }
 }

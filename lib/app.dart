@@ -67,17 +67,15 @@ class _AppScreenState extends State<AppScreen> {
             )),
         actions: [
           IconButton(
-            icon: Icon(PhosphorIconsBold.bellRinging),
+            icon: Icon(
+              PhosphorIconsFill.bell,
+              size: 24,
+            ),
             onPressed: () {
               // Notification functionality
             },
           ),
-          IconButton(
-            icon: Icon(PhosphorIconsBold.lifebuoy),
-            onPressed: () {
-              // Help functionality
-            },
-          )
+          SizedBox(width: 16),
         ],
       ),
       body: IndexedStack(
