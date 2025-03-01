@@ -1,6 +1,6 @@
-import 'package:delivery/gigs.dart';
-import 'package:delivery/home.dart';
-import 'package:delivery/profile.dart';
+import 'package:delivery/screens/profile.dart';
+import 'package:delivery/screens/gigs.dart';
+import 'package:delivery/screens/home.dart';
 import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -18,7 +18,6 @@ class _AppScreenState extends State<AppScreen> {
 
   // Separated tab pages for scalability
   final List<Widget> _pages = <Widget>[
-    // Center(child: Text('Tab 1 Content')),
     HomePage(),
     GigsPage(),
     ProfilePage(),
@@ -95,19 +94,19 @@ class _AppScreenState extends State<AppScreen> {
             icon: Icon(_selectedIndex == 0
                 ? PhosphorIconsFill.house
                 : PhosphorIconsRegular.house),
-            label: 'Home',
+            label: 'Pending',
           ),
           BottomNavigationBarItem(
             icon: Icon(_selectedIndex == 1
                 ? PhosphorIconsFill.basket
                 : PhosphorIconsRegular.basket),
-            label: 'Gigs',
+            label: 'Available',
           ),
           BottomNavigationBarItem(
             icon: Icon(_selectedIndex == 2
                 ? PhosphorIconsBold.list
                 : PhosphorIconsRegular.list),
-            label: 'More',
+            label: 'Profile',
           ),
         ],
       ),
