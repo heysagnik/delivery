@@ -1,6 +1,6 @@
-import 'package:delivery/gigs.dart';
-import 'package:delivery/home.dart';
 import 'package:delivery/profile.dart';
+import 'package:delivery/screens/gigs.dart';
+import 'package:delivery/screens/home.dart';
 import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
