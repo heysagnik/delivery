@@ -1,8 +1,7 @@
-  import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/order_model.dart';
 import '../providers/order_provider.dart';
-import 'assign_order.dart';
 import 'order_detail.dart';
 
 class PendingDeliveries extends StatefulWidget {
@@ -29,7 +28,7 @@ class _PendingDeliveriesState extends State<PendingDeliveries> {
 
   @override
   Widget build(BuildContext context) {
-    var orderProvider= Provider.of<OrderProvider>(context, listen: false);
+    var orderProvider = Provider.of<OrderProvider>(context, listen: false);
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
@@ -45,7 +44,6 @@ class _PendingDeliveriesState extends State<PendingDeliveries> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               // Order list section
               Expanded(
                 child: FutureBuilder<List<Order>>(
@@ -85,10 +83,14 @@ class _PendingDeliveriesState extends State<PendingDeliveries> {
                             ElevatedButton.icon(
                               onPressed: () {
                                 setState(() {
-                                  pendingOrders = orderProvider.getPendingDeliveries();
+                                  pendingOrders =
+                                      orderProvider.getPendingDeliveries();
                                 });
                               },
-                              icon: const Icon(Icons.refresh,color: Colors.white,),
+                              icon: const Icon(
+                                Icons.refresh,
+                                color: Colors.white,
+                              ),
                               label: const Text('Try Again'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Theme.of(context).primaryColor,
@@ -147,7 +149,8 @@ class _PendingDeliveriesState extends State<PendingDeliveries> {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      backgroundColor: Theme.of(context).primaryColor,
+                                      backgroundColor:
+                                          Theme.of(context).primaryColor,
                                     ),
                                     Chip(
                                       label: Text(
@@ -220,13 +223,13 @@ class _PendingDeliveriesState extends State<PendingDeliveries> {
                                               ),
                                             ),
                                             Text(
-                                              '${item.quantity} x ₹${item.price}',
+                                              '${item.quantity}',
                                               style: TextStyle(
                                                   color: Colors.grey[700]),
                                             ),
                                             const SizedBox(width: 8),
                                             Text(
-                                              '₹${(item.quantity * item.price).toStringAsFixed(2)}',
+                                              '₹ 0.0',
                                               style: const TextStyle(
                                                   fontWeight: FontWeight.bold),
                                             ),
@@ -262,16 +265,12 @@ class _PendingDeliveriesState extends State<PendingDeliveries> {
                                     const SizedBox(width: 12),
                                     ElevatedButton.icon(
                                       onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                AssignOrder(orderId: order.id),
-                                          ),
-                                        );
+                                        Provider.of<OrderProvider>(context,
+                                                listen: false)
+                                            .assignOrder(order.id);
                                       },
                                       icon: const Icon(Icons.delivery_dining),
-                                      label: const Text('Assign'),
+                                      label: const Text('Accept'),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: accentColor,
                                         foregroundColor: Colors.white,

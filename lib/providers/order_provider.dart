@@ -2,10 +2,16 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/order_model.dart';
 
 class OrderProvider extends ChangeNotifier {
+
+  Future<String?> setSelectedDriverId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('id');
+  }
 
   Future<List<Order>> getPendingDeliveries() async {
     final url = 'http://taskmaster.outlfy.com/api/pending-deliveries';
@@ -18,12 +24,12 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> assignOrder(String selectedDriverId,String orderId) async {
-
+  Future<void> assignOrder(String orderId) async {
     final url = 'http://taskmaster.outlfy.com/api/assign-driver';
+    var selectedDriver= setSelectedDriverId();
     final body = jsonEncode({
       "deliveryId": orderId,
-      "driverId": selectedDriverId,
+      "driverId": selectedDriver,
     });
 
     try {
