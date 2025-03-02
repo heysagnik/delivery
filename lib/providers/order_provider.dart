@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/order_model.dart';
 
 class OrderProvider extends ChangeNotifier {
-
   Future<String?> setSelectedDriverId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('id');
@@ -31,7 +30,7 @@ class OrderProvider extends ChangeNotifier {
 
   Future<void> assignOrder(String orderId) async {
     final url = 'http://taskmaster.outlfy.com/api/assign-driver';
-    var selectedDriver = setSelectedDriverId();
+    var selectedDriver = await setSelectedDriverId();
     final body = jsonEncode({
       "deliveryId": orderId,
       "driverId": selectedDriver,
@@ -55,19 +54,21 @@ class OrderProvider extends ChangeNotifier {
   }
 
   Future<List<Order>> pendingOrderByDriver() async {
-    var selectedDriver = setSelectedDriverId();
+    var selectedDriver = await setSelectedDriverId();
     try {
       final url =
-          'http://taskmaster.outlfy.com/api/pending-deliveries/$selectedDriver';
+          'https://taskmaster.outlfy.com/api/pending-deliveries/$selectedDriver';
       final response = await http.get(Uri.parse(url));
-
+      print(response.statusCode);
+      print(selectedDriver);
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = jsonDecode(response.body);
         return jsonList.map((json) => Order.fromJson(json)).toList();
       } else {
         throw Exception('Failed to complete order');
       }
-    } catch (error) {
+    } catch (error, st) {
+      print(st);
       throw Exception('Error completing order: $error');
     }
   }
