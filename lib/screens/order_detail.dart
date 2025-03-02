@@ -15,7 +15,7 @@ class OrderDetailsPage extends StatefulWidget {
 class _OrderDetailsPageState extends State<OrderDetailsPage> {
   late Future<Map<String, dynamic>> orderDetails;
   Map<String, String> driverNames = {}; // Cache driver names
-  final Color primaryColor = const Color(0xFF2C3E50);
+
   final Color accentColor = const Color(0xFF3498DB);
   bool isRefreshing = false;
   late var orderPK = 0;
@@ -87,6 +87,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final Color primaryColor = Theme.of(context).primaryColor;
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -490,7 +491,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: primaryColor,
+          color: Theme.of(context).primaryColor,
         ),
       ),
     );
@@ -525,7 +526,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   Widget _buildOrderItem(Map<String, dynamic> item, int index) {
     final price = item["price"] ?? 0;
     final quantity = item["quantity"] ?? 1;
-    final total = (price * quantity).toStringAsFixed(2);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -560,7 +560,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                '₹$price x $quantity',
+                'quantity: $quantity',
                 style: TextStyle(
                   color: Colors.grey[600],
                   fontSize: 13,
@@ -570,7 +570,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           ),
         ),
         Text(
-          '₹$total',
+          '₹$price',
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 15,

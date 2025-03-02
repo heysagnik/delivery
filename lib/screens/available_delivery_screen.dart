@@ -4,57 +4,56 @@ import '../models/order_model.dart';
 import '../providers/order_provider.dart';
 import 'order_detail.dart';
 
-class PendingDeliveries extends StatefulWidget {
-  const PendingDeliveries({super.key});
+class AvailableDeliveries extends StatefulWidget {
+  const AvailableDeliveries({super.key});
 
   @override
-  State<PendingDeliveries> createState() => _PendingDeliveriesState();
+  State<AvailableDeliveries> createState() => _AvailableDeliveriesState();
 }
 
-class _PendingDeliveriesState extends State<PendingDeliveries> {
-  late Future<List<Order>> pendingOrders;
+class _AvailableDeliveriesState extends State<AvailableDeliveries> {
+  late Future<List<Order>> availableOrders;
 
   // Define a consistent color scheme matching the HomeScreen
-  final Color accentColor = const Color(0xFF3498DB);
-  final Color backgroundColor = const Color(0xFFF5F7FA);
+  final Color acceptColor = const Color(0xFF25B462);
   final Color pendingColor = const Color(0xFFE74C3C);
 
   @override
   void initState() {
     super.initState();
-    pendingOrders = Provider.of<OrderProvider>(context, listen: false)
-        .getPendingDeliveries();
+    availableOrders = Provider.of<OrderProvider>(context, listen: false)
+        .getAvailableDeliveries();
   }
 
   @override
   Widget build(BuildContext context) {
     var orderProvider = Provider.of<OrderProvider>(context, listen: false);
     return Scaffold(
-      backgroundColor: backgroundColor,
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text('Available Orders'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Text(
+                'Available Orders',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               // Order list section
               Expanded(
                 child: FutureBuilder<List<Order>>(
-                  future: pendingOrders,
+                  future: availableOrders,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            CircularProgressIndicator(color: accentColor),
+                            CircularProgressIndicator(color: Theme.of(context).primaryColor),
                             const SizedBox(height: 16),
                             Text(
                               'Loading orders...',
@@ -83,8 +82,8 @@ class _PendingDeliveriesState extends State<PendingDeliveries> {
                             ElevatedButton.icon(
                               onPressed: () {
                                 setState(() {
-                                  pendingOrders =
-                                      orderProvider.getPendingDeliveries();
+                                  availableOrders =
+                                      orderProvider.getAvailableDeliveries();
                                 });
                               },
                               icon: const Icon(
@@ -229,7 +228,7 @@ class _PendingDeliveriesState extends State<PendingDeliveries> {
                                             ),
                                             const SizedBox(width: 8),
                                             Text(
-                                              '₹ 0.0',
+                                              '₹ ${item.price}',
                                               style: const TextStyle(
                                                   fontWeight: FontWeight.bold),
                                             ),
@@ -244,35 +243,16 @@ class _PendingDeliveriesState extends State<PendingDeliveries> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    OutlinedButton.icon(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                OrderDetailsPage(
-                                                    orderId: order.id),
-                                          ),
-                                        );
-                                      },
-                                      icon: const Icon(Icons.visibility),
-                                      label: const Text('View Details'),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: accentColor,
-                                        side: BorderSide(color: accentColor),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
                                     ElevatedButton.icon(
                                       onPressed: () {
                                         Provider.of<OrderProvider>(context,
                                                 listen: false)
                                             .assignOrder(order.id);
                                       },
-                                      icon: const Icon(Icons.delivery_dining),
+                                      icon: const Icon(Icons.delivery_dining,color: Colors.white,),
                                       label: const Text('Accept'),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: accentColor,
+                                        backgroundColor: acceptColor,
                                         foregroundColor: Colors.white,
                                       ),
                                     ),

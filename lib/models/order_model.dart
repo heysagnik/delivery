@@ -14,7 +14,7 @@ class Order {
   final num totalAmount;
   final num totalQuantity;
   final String createdAt;
-  // final String updatedAt;
+  final String updatedAt;
   final Timeline timeline;
 
   Order({
@@ -33,7 +33,7 @@ class Order {
     required this.totalAmount,
     required this.totalQuantity,
     required this.createdAt,
-    // required this.updatedAt,
+    required this.updatedAt,
     required this.timeline,
   });
 
@@ -54,7 +54,7 @@ class Order {
       totalAmount: json['totalAmount'] ?? 0,
       totalQuantity: json['totalQuantity'] ?? 0,
       createdAt: json['createdAt'] ?? "",
-      // updatedAt: json['updatedAt'] ?? "",
+      updatedAt: json['updatedAt'] ?? "",
       timeline: json['timeline'] != null ? Timeline.fromJson(json['timeline']) : Timeline(acceptedAt: ""),
     );
   }

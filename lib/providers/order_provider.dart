@@ -13,27 +13,25 @@ class OrderProvider extends ChangeNotifier {
     return prefs.getString('id');
   }
 
-  Future<List<Order>> getPendingDeliveries() async {
-
+  Future<List<Order>> getAvailableDeliveries() async {
     try {
       final url = 'http://taskmaster.outlfy.com/api/pending-deliveries';
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-      final List<dynamic> jsonList = jsonDecode(response.body);
-      return jsonList.map((json) => Order.fromJson(json)).toList();
+        final List<dynamic> jsonList = jsonDecode(response.body);
+        return jsonList.map((json) => Order.fromJson(json)).toList();
       } else {
-      throw Exception('Failed to fetch pending deliveries');
+        throw Exception('Failed to fetch available deliveries');
       }
-    } catch (error, stackTrace) {
-      print('Error fetching pending deliveries: $error');
-      print('Stack trace: $stackTrace');
-      throw Exception('Error fetching pending deliveries');
+    } catch (error) {
+      print('Error fetching available deliveries: $error');
+      throw Exception('Error fetching available deliveries');
     }
   }
 
   Future<void> assignOrder(String orderId) async {
     final url = 'http://taskmaster.outlfy.com/api/assign-driver';
-    var selectedDriver= setSelectedDriverId();
+    var selectedDriver = setSelectedDriverId();
     final body = jsonEncode({
       "deliveryId": orderId,
       "driverId": selectedDriver,
@@ -53,6 +51,24 @@ class OrderProvider extends ChangeNotifier {
       }
     } catch (error) {
       throw Exception('Error assigning order: $error');
+    }
+  }
+
+  Future<List<Order>> pendingOrderByDriver() async {
+    var selectedDriver = setSelectedDriverId();
+    try {
+      final url =
+          'http://taskmaster.outlfy.com/api/pending-deliveries/$selectedDriver';
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList = jsonDecode(response.body);
+        return jsonList.map((json) => Order.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to complete order');
+      }
+    } catch (error) {
+      throw Exception('Error completing order: $error');
     }
   }
 }

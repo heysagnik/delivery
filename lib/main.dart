@@ -1,5 +1,6 @@
 import 'package:delivery/app.dart';
 import 'package:delivery/providers/auth_provider.dart';
+import 'package:delivery/providers/driver_provider.dart';
 import 'package:delivery/providers/order_provider.dart';
 import 'package:delivery/screens/login_screen.dart';
 import 'package:delivery/screens/otp_screen.dart';
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => DriverProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
