@@ -14,13 +14,20 @@ class OrderProvider extends ChangeNotifier {
   }
 
   Future<List<Order>> getPendingDeliveries() async {
-    final url = 'http://taskmaster.outlfy.com/api/pending-deliveries';
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
+
+    try {
+      final url = 'http://taskmaster.outlfy.com/api/pending-deliveries';
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body);
       return jsonList.map((json) => Order.fromJson(json)).toList();
-    } else {
+      } else {
       throw Exception('Failed to fetch pending deliveries');
+      }
+    } catch (error, stackTrace) {
+      print('Error fetching pending deliveries: $error');
+      print('Stack trace: $stackTrace');
+      throw Exception('Error fetching pending deliveries');
     }
   }
 

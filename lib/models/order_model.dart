@@ -11,8 +11,8 @@ class Order {
   final String shippingName;
   final String shippingPhone;
   final String shippingPincode;
-  final int totalAmount;
-  final int totalQuantity;
+  final num totalAmount;
+  final num totalQuantity;
   final String createdAt;
   // final String updatedAt;
   final Timeline timeline;
@@ -62,8 +62,8 @@ class Order {
 
 class Item {
   final String name;
-  final int quantity;
-  final double price;
+  final num quantity;
+  final num price;
 
   Item({
     required this.name,
