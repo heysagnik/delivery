@@ -216,7 +216,7 @@ class OrderCard extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  backgroundColor: pendingColor,
+                  backgroundColor: acceptColor,
                 ),
               ],
             ),
@@ -262,7 +262,7 @@ class OrderCard extends StatelessWidget {
 
             // Action buttons
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 OutlinedButton.icon(
                   onPressed: onViewDetails,
@@ -271,16 +271,6 @@ class OrderCard extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Theme.of(context).primaryColor,
                     side: BorderSide(color: Theme.of(context).primaryColor),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: onAccept,
-                  icon: const Icon(Icons.delivery_dining, color: Colors.white),
-                  label: const Text('Accept'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: acceptColor,
-                    foregroundColor: Colors.white,
                   ),
                 ),
               ],

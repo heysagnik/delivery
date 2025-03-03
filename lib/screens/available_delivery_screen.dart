@@ -248,6 +248,8 @@ class _AvailableDeliveriesState extends State<AvailableDeliveries> {
                                         Provider.of<OrderProvider>(context,
                                                 listen: false)
                                             .assignOrder(order.id);
+                                        Provider.of<OrderProvider>(context, listen: false)
+                                            .getAvailableDeliveries();
                                       },
                                       icon: const Icon(Icons.delivery_dining,color: Colors.white,),
                                       label: const Text('Accept'),

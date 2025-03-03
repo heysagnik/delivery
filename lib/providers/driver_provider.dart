@@ -27,7 +27,7 @@ class DriverProvider extends ChangeNotifier {
   Future<Map<String, dynamic>> fetchDriverDetails() async {
     try {
       final driverId = await setSelectedDriverId();
-      final url = 'http://taskmaster.outlfy.com/api/driver-details/$driverId';
+      final url = 'https://taskmaster.outlfy.com/api/driver-details/$driverId';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
@@ -41,7 +41,7 @@ class DriverProvider extends ChangeNotifier {
   }
 
   Future<List<Map<String, dynamic>>> fetchAvailableDrivers() async {
-    const url = 'http://taskmaster.outlfy.com/api/drivers';
+    const url = 'https://taskmaster.outlfy.com/api/drivers';
     try {
       final response = await http.get(Uri.parse(url));
 
@@ -84,4 +84,13 @@ class DriverProvider extends ChangeNotifier {
       debugPrint("Error updating status: $e");
     }
   }
+  // Future<void> fetchDriverName(String driverId) async {
+  //   final url = 'http://taskmaster.outlfy.com/api/driver-details/$driverId';
+  //   final response = await http.get(Uri.parse(url));
+  //   if (response.statusCode == 200) {
+  //     final driverData = jsonDecode(response.body);
+  //   } else {
+  //     throw Exception('Failed to fetch driver name');
+  //   }
+  // }
 }

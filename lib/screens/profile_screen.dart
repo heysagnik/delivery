@@ -32,7 +32,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-
   @override
   void initState() {
     super.initState();
@@ -44,15 +43,17 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:
-            const Text('Driver Details', style: TextStyle(color: Colors.white)),
-        centerTitle: true,
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Colors.white,
+        title: const Text(
+          'Driver Details',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: _refreshDriverDetails,
@@ -266,34 +267,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           isActive: driver['isReady'] == true,
                           activeText: 'Ready to go',
                           inactiveText: 'Not ready',
-                        ),
-
-                        // Action buttons
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  // Toggle ready status logic would go here
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'Status update functionality would go here'),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.toggle_on),
-                                label: const Text('Toggle Ready Status'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF2C3E50),
-                                  foregroundColor: Colors.white,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                     ),

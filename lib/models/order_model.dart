@@ -58,6 +58,28 @@ class Order {
       timeline: json['timeline'] != null ? Timeline.fromJson(json['timeline']) : Timeline(acceptedAt: ""),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'orderPK': orderPK,
+      'deliveryBoy': deliveryBoy,
+      'deliveryStatus': deliveryStatus,
+      'items': items.map((item) => item.toJson()).toList(),
+      'onlineReferenceNo': onlineReferenceNo,
+      'ordTimestamp': ordTimestamp,
+      'paymentMode': paymentMode,
+      'shippingAddress1': shippingAddress1,
+      'shippingName': shippingName,
+      'shippingPhone': shippingPhone,
+      'shippingPincode': shippingPincode,
+      'totalAmount': totalAmount,
+      'totalQuantity': totalQuantity,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+      'timeline': timeline.toJson(),
+    };
+  }
 }
 
 class Item {
@@ -78,9 +100,16 @@ class Item {
       price: json['price'] ?? 0.0,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'quantity': quantity,
+      'price': price,
+    };
+  }
 }
 
-// Updated Timeline class to return empty values
 class Timeline {
   final String acceptedAt;
 
@@ -88,5 +117,11 @@ class Timeline {
 
   factory Timeline.fromJson(Map<String, dynamic> json) {
     return Timeline(acceptedAt: json['acceptedAt'] ?? "");
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'acceptedAt': acceptedAt,
+    };
   }
 }
