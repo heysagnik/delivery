@@ -2,8 +2,11 @@ import 'package:delivery/app.dart';
 import 'package:delivery/providers/auth_provider.dart';
 import 'package:delivery/providers/driver_provider.dart';
 import 'package:delivery/providers/order_provider.dart';
+import 'package:delivery/screens/available_delivery_screen.dart';
 import 'package:delivery/screens/login_screen.dart';
 import 'package:delivery/screens/otp_screen.dart';
+import 'package:delivery/screens/pending_deliveries_screen.dart';
+import 'package:delivery/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -35,6 +38,9 @@ class MyApp extends StatelessWidget {
           '/login': (context) => const LoginScreen(),
           '/OTP': (context) => const OTPScreen(),
           '/appScreen': (context) => const AppScreen(),
+          '/pendingDelivery': (context) => const PendingDeliveries(),
+          '/availableDelivery': (context) => const AvailableDeliveries(),
+          '/profile': (context) => const ProfilePage(),
         },
       ),
     );

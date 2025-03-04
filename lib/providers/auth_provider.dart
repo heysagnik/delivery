@@ -94,7 +94,6 @@ class AuthProvider extends ChangeNotifier {
       );
 
       final data = jsonDecode(response.body);
-      print("Response: ${response.body}");
 
       if (response.statusCode == 200 && data['token'] != null) {
         _token = data['token'];

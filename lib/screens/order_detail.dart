@@ -1,4 +1,5 @@
 import 'package:delivery/providers/order_provider.dart';
+import 'package:delivery/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -14,18 +15,14 @@ class OrderDetailsPage extends StatefulWidget {
 
 class _OrderDetailsPageState extends State<OrderDetailsPage> {
   late Future<Map<String, dynamic>> _orderDetails;
-  final Map<String, String> _driverNames = {}; // Cache driver names
+  final Map<String, String> _driverNames = {};
   bool _isRefreshing = false;
   late int orderPK = 0;
 
   // Order status constants
-  static const String STATUS_PENDING = "pending";
-  static const String STATUS_ACCEPTED = "accepted";
-  static const String STATUS_PICKED = "picked";
-  static const String STATUS_REACHED = "reached";
-  static const String STATUS_DELIVERED = "delivered";
-  static const String STATUS_COMPLETED = "completed";
-  static const String STATUS_CANCELLED = "cancelled";
+  static const STATUS_PICKED = "picked";
+  static const STATUS_REACHED = "reached";
+  static const STATUS_DELIVERED = "delivered";
 
   // Date format constant
   static const _dateFormat = 'MMM dd, yyyy • hh:mm a';
@@ -41,7 +38,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     try {
       final order = await orderProvider.fetchOrderDetails(widget.orderId);
       setState(() {
-        orderPK = order.orderPK ?? 0;
+        orderPK = order.orderPK;
       });
       _orderDetails = Future.value(order.toJson());
     } catch (e) {
@@ -63,7 +60,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
     try {
       final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-      await orderProvider.pickupOrder(orderPK, status);
+      await orderProvider.changeOrderStatus(orderPK, status);
 
       // Refresh order details to get the updated status
       await _loadOrderDetails();
@@ -71,17 +68,14 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       if (status == STATUS_DELIVERED) {
         // If order is delivered, navigate back
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Order delivered successfully!'))
-          );
+          showSnackBar(context, 'Order delivered successfully');
           Navigator.pop(context);
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error updating order: ${e.toString()}'))
-        );
+        showSnackBar(context, 'Error updating order status: $e');
+        setState(() => _isRefreshing = false);
       }
     } finally {
       if (mounted) setState(() => _isRefreshing = false);
@@ -148,7 +142,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         child: ElevatedButton.icon(
           onPressed: _isRefreshing ? null : onPressed,
-          icon: Icon(icon),
+          icon: Icon(icon, size: 20, color: Colors.white),
           label: Text(label),
           style: ElevatedButton.styleFrom(
             backgroundColor: color,

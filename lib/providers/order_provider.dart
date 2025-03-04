@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/order_model.dart';
 
 class OrderProvider extends ChangeNotifier {
-  Future<String?> setSelectedDriverId() async {
+  Future<String?> getSelectedDriverId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('id');
   }
@@ -31,19 +31,16 @@ class OrderProvider extends ChangeNotifier {
   Future<void> assignOrder(String orderId) async {
     try {
       final url = 'https://taskmaster.outlfy.com/api/assign-driver';
-      var selectedDriver = await setSelectedDriverId();
+      var selectedDriver = await getSelectedDriverId();
       final body = jsonEncode({
         "deliveryId": orderId,
         "driverId": selectedDriver,
       });
-      print(orderId);
-      print(selectedDriver);
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: body,
       );
-
       if (response.statusCode == 200) {
         print('Order assigned successfully');
         notifyListeners();
@@ -52,19 +49,19 @@ class OrderProvider extends ChangeNotifier {
         throw Exception('Failed to assign order');
       }
     } catch (error) {
+      print('Error assigning order: $error');
       throw Exception('Error assigning order: $error');
     }
   }
 
   Future<List<Order>> pendingOrderByDriver() async {
-    var selectedDriver = await setSelectedDriverId();
+    var selectedDriver = await getSelectedDriverId();
     try {
       final url =
           'https://taskmaster.outlfy.com/api/pending-deliveries/$selectedDriver';
       final response = await http.get(Uri.parse(url));
-      print(response.statusCode);
-      print(selectedDriver);
       if (response.statusCode == 200) {
+        print('Pending orders fetched successfully');
         final List<dynamic> jsonList = jsonDecode(response.body);
         return jsonList.map((json) => Order.fromJson(json)).toList();
       } else {
@@ -77,12 +74,12 @@ class OrderProvider extends ChangeNotifier {
   }
 
   Future<Order> fetchOrderDetails(String orderId) async {
-    final url = 'https://taskmaster.outlfy.com/api/delivery-details/$orderId';
-
     try {
+      final url = 'https://taskmaster.outlfy.com/api/delivery-details/$orderId';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
+        print('Order details fetched successfully');
         final Map<String, dynamic> jsonMap = jsonDecode(response.body);
         return Order.fromJson(jsonMap);
       } else {
@@ -94,7 +91,7 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> pickupOrder(int orderPK,String status) async {
+  Future<void> changeOrderStatus(int orderPK, String status) async {
     try {
       final url = 'https://taskmaster.outlfy.com/api/update-status';
       final body = jsonEncode({
@@ -108,13 +105,13 @@ class OrderProvider extends ChangeNotifier {
         body: body,
       );
       if (response.statusCode == 200) {
-        print('Order status updated successfully');
+        print('Order status updated successfully to $status');
         notifyListeners();
         return;
       } else {
         throw Exception('Failed to update order status');
       }
-    }catch (error) {
+    } catch (error) {
       throw Exception('Error updating order status: $error');
     }
   }
