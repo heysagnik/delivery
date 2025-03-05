@@ -1,12 +1,25 @@
 import 'package:delivery/app.dart';
 import 'package:delivery/providers/auth_provider.dart';
+import 'package:delivery/providers/driver_provider.dart';
+import 'package:delivery/providers/notification_provider.dart';
 import 'package:delivery/providers/order_provider.dart';
+import 'package:delivery/screens/available_delivery_screen.dart';
 import 'package:delivery/screens/login_screen.dart';
 import 'package:delivery/screens/otp_screen.dart';
+import 'package:delivery/screens/pending_deliveries_screen.dart';
+import 'package:delivery/screens/profile_screen.dart';
+import 'package:delivery/services/notification_services.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final storage = FlutterSecureStorage();
+  await storage.deleteAll();
+  await Firebase.initializeApp();
+  await NotificationService.instance.initialize();
   runApp(const MyApp());
 }
 
@@ -19,6 +32,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => DriverProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -33,6 +48,9 @@ class MyApp extends StatelessWidget {
           '/login': (context) => const LoginScreen(),
           '/OTP': (context) => const OTPScreen(),
           '/appScreen': (context) => const AppScreen(),
+          '/pendingDelivery': (context) => const PendingDeliveries(),
+          '/availableDelivery': (context) => const AvailableDeliveries(),
+          '/profile': (context) => const ProfilePage(),
         },
       ),
     );

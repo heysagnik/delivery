@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "840601866351",
+    "project_id": "daykart-delivery",
+    "storage_bucket": "daykart-delivery.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:840601866351:android:621c61ec98a480fd30fd9a",
+        "android_client_info": {
+          "package_name": "com.daykart.delivery"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxZX2-xUbJkgTV3BDOs6OwnVTfyZ7yMV8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:840601866351:android:823c71a03183d05630fd9a",
+        "android_client_info": {
+          "package_name": "com.daykart.deliverymanager"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxZX2-xUbJkgTV3BDOs6OwnVTfyZ7yMV8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
