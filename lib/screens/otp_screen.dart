@@ -24,6 +24,7 @@ class _OTPScreenState extends State<OTPScreen> {
   void _startResendTimer() {
     setState(() => resendSeconds = 30);
     Future.delayed(const Duration(seconds: 1), () {
+      if(!mounted) return;
       if (resendSeconds > 0) {
         setState(() => resendSeconds--);
         _startResendTimer();

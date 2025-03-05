@@ -1,7 +1,7 @@
 class Order {
   final String id;
   final int orderPK;
-  final String deliveryBoy;
+  final DeliveryBoy deliveryBoy;
   final String deliveryStatus;
   final List<Item> items;
   final int onlineReferenceNo;
@@ -14,7 +14,6 @@ class Order {
   final num totalAmount;
   final num totalQuantity;
   final String createdAt;
-  final String updatedAt;
   final Timeline timeline;
 
   Order({
@@ -33,7 +32,6 @@ class Order {
     required this.totalAmount,
     required this.totalQuantity,
     required this.createdAt,
-    required this.updatedAt,
     required this.timeline,
   });
 
@@ -41,7 +39,7 @@ class Order {
     return Order(
       id: json['_id'] ?? "",
       orderPK: json['orderPK'] ?? 0,
-      deliveryBoy: json['deliveryBoy'] ?? "",
+      deliveryBoy: DeliveryBoy.fromJson(json['deliveryBoy'] ?? {}),
       deliveryStatus: json['deliveryStatus'] ?? "",
       items: (json['items'] as List?)?.map((item) => Item.fromJson(item)).toList() ?? [],
       onlineReferenceNo: json['onlineReferenceNo'] ?? 0,
@@ -54,38 +52,8 @@ class Order {
       totalAmount: json['totalAmount'] ?? 0,
       totalQuantity: json['totalQuantity'] ?? 0,
       createdAt: json['createdAt'] ?? "",
-      updatedAt: json['updatedAt'] ?? "",
-      timeline: json['timeline'] != null
-          ? Timeline.fromJson(json['timeline'])
-          : Timeline(
-          acceptedAt: "",
-          pickedAt: "",
-          reachedAt: "",
-          deliveredAt: ""
-      ),
+      timeline: Timeline.fromJson(json['timeline'] ?? {}),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'orderPK': orderPK,
-      'deliveryBoy': deliveryBoy,
-      'deliveryStatus': deliveryStatus,
-      'items': items.map((item) => item.toJson()).toList(),
-      'onlineReferenceNo': onlineReferenceNo,
-      'ordTimestamp': ordTimestamp,
-      'paymentMode': paymentMode,
-      'shippingAddress1': shippingAddress1,
-      'shippingName': shippingName,
-      'shippingPhone': shippingPhone,
-      'shippingPincode': shippingPincode,
-      'totalAmount': totalAmount,
-      'totalQuantity': totalQuantity,
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
-      'timeline': timeline.toJson(),
-    };
   }
 }
 
@@ -110,63 +78,59 @@ class Item {
       id: json['_id'],
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'quantity': quantity,
-      'price': price,
-      '_id': id,
-    };
-  }
 }
 
 class Timeline {
   final String acceptedAt;
-  final String pickedAt;
-  final String reachedAt;
-  final String deliveredAt;
 
   Timeline({
     required this.acceptedAt,
-    required this.pickedAt,
-    required this.reachedAt,
-    required this.deliveredAt,
   });
 
   factory Timeline.fromJson(Map<String, dynamic> json) {
     return Timeline(
       acceptedAt: json['acceptedAt'] ?? "",
-      pickedAt: json['pickedAt'] ?? "",
-      reachedAt: json['reachedAt'] ?? "",
-      deliveredAt: json['deliveredAt'] ?? "",
     );
   }
+}
 
-  Map<String, dynamic> toJson() {
-    return {
-      'acceptedAt': acceptedAt,
-      'pickedAt': pickedAt,
-      'reachedAt': reachedAt,
-      'deliveredAt': deliveredAt,
-    };
-  }
+class DeliveryBoy {
+  final String id;
+  final String name;
+  final String email;
+  final String mobile;
+  final bool isActive;
+  final bool isLive;
+  final bool isReady;
+  final String storeId;
+  final String fcmToken;
+  final String updatedAt;
 
-  // Helper method to check order status based on timeline
-  String getOrderStatus() {
-    if (deliveredAt.isNotEmpty) return 'Delivered';
-    if (reachedAt.isNotEmpty) return 'Reached';
-    if (pickedAt.isNotEmpty) return 'Picked';
-    if (acceptedAt.isNotEmpty) return 'Accepted';
-    return 'Pending';
-  }
+  DeliveryBoy({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.mobile,
+    required this.isActive,
+    required this.isLive,
+    required this.isReady,
+    required this.storeId,
+    required this.fcmToken,
+    required this.updatedAt,
+  });
 
-  // Helper method to get the most recent status timestamp
-  String getMostRecentStatusTimestamp() {
-    if (deliveredAt.isNotEmpty) return deliveredAt;
-    if (reachedAt.isNotEmpty) return reachedAt;
-    if (pickedAt.isNotEmpty) return pickedAt;
-    if (acceptedAt.isNotEmpty) return acceptedAt;
-    return '';
+  factory DeliveryBoy.fromJson(Map<String, dynamic> json) {
+    return DeliveryBoy(
+      id: json['_id'] ?? "",
+      name: json['name'] ?? "",
+      email: json['email'] ?? "",
+      mobile: json['mobile'] ?? "",
+      isActive: json['isActive'] ?? false,
+      isLive: json['isLive'] ?? false,
+      isReady: json['isReady'] ?? false,
+      storeId: json['storeId'] ?? "",
+      fcmToken: json['fcmToken'] ?? "",
+      updatedAt: json['updatedAt'] ?? "",
+    );
   }
 }

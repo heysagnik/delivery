@@ -1,4 +1,5 @@
 import 'package:delivery/providers/driver_provider.dart';
+import 'package:delivery/providers/notification_provider.dart';
 import 'package:delivery/screens/profile_screen.dart';
 import 'package:delivery/screens/available_delivery_screen.dart';
 import 'package:delivery/screens/pending_deliveries_screen.dart';
@@ -16,7 +17,7 @@ class AppScreen extends StatefulWidget {
 }
 
 class _AppScreenState extends State<AppScreen> {
-  bool isLive = false;
+  bool isLive=false;
   int _selectedIndex = 0;
   late final ValueNotifier<bool> _controller;
 
@@ -36,14 +37,13 @@ class _AppScreenState extends State<AppScreen> {
     _controller.addListener(() {
       driverProvider.updateOnlineStatus(_controller.value);
     });
+    Provider.of<NotificationProvider>(context, listen: false)
+        .subscribeNotification();
   }
 
   Future<void> _loadOnlineStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      isLive = prefs.getBool('isLive') ?? false;
-    });
-    _controller.value = isLive; // Update controller after loading status
+    isLive = prefs.getBool('isLive') ?? false;
   }
 
   void _onItemTapped(int index) {
