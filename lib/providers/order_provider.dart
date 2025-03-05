@@ -63,6 +63,8 @@ class OrderProvider extends ChangeNotifier {
       if (response.statusCode == 200) {
         print('Pending orders fetched successfully');
         final List<dynamic> jsonList = jsonDecode(response.body);
+        print('Raw API Response: ${response.body}');
+
         return jsonList.map((json) => Order.fromJson(json)).toList();
       } else {
         throw Exception('Failed to complete order');
@@ -81,6 +83,7 @@ class OrderProvider extends ChangeNotifier {
       if (response.statusCode == 200) {
         print('Order details fetched successfully');
         final Map<String, dynamic> jsonMap = jsonDecode(response.body);
+        print(jsonMap);
         return Order.fromJson(jsonMap);
       } else {
         throw Exception('Failed to load order details');

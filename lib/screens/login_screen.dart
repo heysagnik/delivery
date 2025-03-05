@@ -62,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await Provider.of<AuthProvider>(context, listen: false)
           .login(_phoneController.text);
-      Navigator.pushNamed(context, '/OTP');
+      Navigator.pushReplacementNamed(context, '/OTP');
     } catch (e) {
       showSnackBar(context, 'Login failed. Try again later');
     } finally {

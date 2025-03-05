@@ -25,12 +25,6 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _localNotifications =
   FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
-  BuildContext? _context;
-
-  /// Sets the context for provider access
-  void setContext(BuildContext context) {
-    _context = context;
-  }
 
   /// Initializes notification service
   Future<void> initialize({BuildContext? context}) async {
@@ -39,12 +33,6 @@ class NotificationService {
 
       // Ensure Firebase is initialized before any operations
       await Firebase.initializeApp();
-
-      // Set context if provided
-      if (context != null) {
-        _context = context;
-      }
-
       await _fetchAndSaveFCMToken();
 
       // Configure Firebase messaging
@@ -55,15 +43,6 @@ class NotificationService {
       await setupMessageHandlers();
       await _checkNotificationLaunch();
 
-      // Safely access provider
-      if (_context != null) {
-        try {
-          Provider.of<NotificationProvider>(_context!, listen: false)
-              .subscribeNotification();
-        } catch (e) {
-          debugPrint('Error accessing NotificationProvider: $e');
-        }
-      }
     } catch (e) {
       debugPrint('Initialization error: $e');
     }

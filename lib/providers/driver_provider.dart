@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -9,9 +10,9 @@ class DriverProvider extends ChangeNotifier {
 
   bool get isLive => _isLive;
 
-  Future<String?> getSelectedDriverId() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('id');
+  Future<String?> getToken() async {
+    final secureStorage = const FlutterSecureStorage();
+    return secureStorage.read(key: 'token');
   }
 
   // Future<void> _loadOnlineStatus() async {
@@ -22,9 +23,12 @@ class DriverProvider extends ChangeNotifier {
 
   Future<Map<String, dynamic>> fetchDriverDetails() async {
     try {
-      final driverId = await getSelectedDriverId();
-      final url = 'https://taskmaster.outlfy.com/api/driver-details/$driverId';
-      final response = await http.get(Uri.parse(url));
+      final token = getToken();
+      final url = 'https://daykart.com/api/driver/profile';
+      final response = await http.get(headers: {
+        "Content-Type": "application/json",
+        "Authorization": "$token",
+      }, Uri.parse(url));
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);

@@ -67,12 +67,12 @@ class _AvailableDeliveriesState extends State<AvailableDeliveries> {
                           order: order,
                           acceptColor: acceptColor,
                           pendingColor: pendingColor,
-                          onAccept: () {
+                          onAccept: () async {
                             Provider.of<OrderProvider>(context, listen: false)
                                 .assignOrder(order.id);
                             Provider.of<OrderProvider>(context, listen: false)
                                 .pendingOrderByDriver();
-                            Navigator.pushNamed(context, '/appScreen');
+                            Navigator.pushReplacementNamed(context, '/appScreen');
                           },
                         );
                       },
