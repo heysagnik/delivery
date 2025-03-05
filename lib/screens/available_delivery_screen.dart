@@ -70,7 +70,7 @@ class _AvailableDeliveriesState extends State<AvailableDeliveries> {
                           onAccept: () {
                             Provider.of<OrderProvider>(context, listen: false)
                                 .assignOrder(order.id);
-                            Navigator.pushNamed(context, '/pendingDelivery');
+                            Navigator.pushNamed(context, '/appScreen');
                           },
                         );
                       },

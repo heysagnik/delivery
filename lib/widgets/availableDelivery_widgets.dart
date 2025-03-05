@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/order_model.dart';
 
 class LoadingIndicator extends StatelessWidget {
@@ -92,8 +93,6 @@ class EmptyDataWidget extends StatelessWidget {
     );
   }
 }
-
-/// Widget for displaying order details
 class OrderCard extends StatelessWidget {
   final Order order;
   final Color acceptColor;
@@ -107,6 +106,16 @@ class OrderCard extends StatelessWidget {
     required this.pendingColor,
     required this.onAccept,
   });
+
+  // Helper method to format date
+  String _formatDateTime(String dateTimeString) {
+    try {
+      final dateTime = DateTime.parse(dateTimeString);
+      return DateFormat('dd MMM yyyy, hh:mm a').format(dateTime.toLocal());
+    } catch (e) {
+      return dateTimeString; // Return original string if parsing fails
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,6 +156,39 @@ class OrderCard extends StatelessWidget {
               ],
             ),
             const Divider(height: 24),
+
+            // Created At Timeline
+            Row(
+              children: [
+                const Icon(Icons.calendar_today, size: 20, color: Colors.grey),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Created On:',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        _formatDateTime(order.createdAt),
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
             Row(
               children: [
                 const Icon(Icons.payments, size: 20),

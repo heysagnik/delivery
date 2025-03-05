@@ -14,7 +14,7 @@ class OrderDetailsPage extends StatefulWidget {
 }
 
 class _OrderDetailsPageState extends State<OrderDetailsPage> {
-  late Future<Map<String, dynamic>> _orderDetails;
+  Future<Map<String, dynamic>>? _orderDetails;
   final Map<String, String> _driverNames = {};
   bool _isRefreshing = false;
   late int orderPK = 0;
@@ -262,6 +262,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     final bool isAccepted = statusText == "accepted" ||
         statusText == "picked" ||
         statusText == "reached";
+
+    final Map<String, dynamic> statusTimestamps =
+        data["statusTimestamps"] ?? {};
+
     final String deliveryBoyId = data["deliveryBoy"] ?? "";
     final String deliveryBoyName = deliveryBoyId.isNotEmpty
         ? (_driverNames[deliveryBoyId] ?? "Fetching...")
@@ -293,6 +297,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 if (data["deliveryAddress"] != null)
                   _buildAddressSection(data["deliveryAddress"], accentColor),
                 const SizedBox(height: 30),
+
               ],
             ),
           ),
