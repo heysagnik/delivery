@@ -16,7 +16,7 @@ class AppScreen extends StatefulWidget {
 }
 
 class _AppScreenState extends State<AppScreen> {
-  late bool isLive;
+  bool isLive = false;
   int _selectedIndex = 0;
   late final ValueNotifier<bool> _controller;
 
@@ -40,7 +40,10 @@ class _AppScreenState extends State<AppScreen> {
 
   Future<void> _loadOnlineStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    isLive = prefs.getBool('isLive') ?? false;
+    setState(() {
+      isLive = prefs.getBool('isLive') ?? false;
+    });
+    _controller.value = isLive; // Update controller after loading status
   }
 
   void _onItemTapped(int index) {
