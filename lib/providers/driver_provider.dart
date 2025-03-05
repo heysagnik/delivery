@@ -9,20 +9,16 @@ class DriverProvider extends ChangeNotifier {
 
   bool get isLive => _isLive;
 
-  DriverProvider() {
-    _loadOnlineStatus();
-  }
-
   Future<String?> getSelectedDriverId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('id');
   }
 
-  Future<void> _loadOnlineStatus() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    _isLive = prefs.getBool('isLive') ?? false;
-    notifyListeners();
-  }
+  // Future<void> _loadOnlineStatus() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   _isLive = prefs.getBool('isLive') ?? false;
+  //   notifyListeners();
+  // }
 
   Future<Map<String, dynamic>> fetchDriverDetails() async {
     try {
@@ -85,5 +81,4 @@ class DriverProvider extends ChangeNotifier {
       throw Exception('Error: $e');
     }
   }
-
 }

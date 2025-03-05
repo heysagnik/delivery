@@ -5,8 +5,8 @@ class AppLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.network(
-      'https://play-lh.googleusercontent.com/eK40jb0-5wCpzOUDn3qO8NeQqBl4fvPwC7VOHb1N8X9ccLM5LupLMEcakrvbfGtJEA',
+    return Image.asset(
+      'assets/logo.png',
       height: 100,
       width: 100,
     );

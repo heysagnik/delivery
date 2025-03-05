@@ -70,6 +70,8 @@ class _AvailableDeliveriesState extends State<AvailableDeliveries> {
                           onAccept: () {
                             Provider.of<OrderProvider>(context, listen: false)
                                 .assignOrder(order.id);
+                            Provider.of<OrderProvider>(context, listen: false)
+                                .pendingOrderByDriver();
                             Navigator.pushNamed(context, '/appScreen');
                           },
                         );

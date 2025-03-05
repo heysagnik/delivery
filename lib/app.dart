@@ -6,6 +6,7 @@ import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AppScreen extends StatefulWidget {
   const AppScreen({super.key});
@@ -15,6 +16,7 @@ class AppScreen extends StatefulWidget {
 }
 
 class _AppScreenState extends State<AppScreen> {
+  late bool isLive;
   int _selectedIndex = 0;
   late final ValueNotifier<bool> _controller;
 
@@ -27,14 +29,18 @@ class _AppScreenState extends State<AppScreen> {
   @override
   void initState() {
     super.initState();
-
+    _loadOnlineStatus();
     final driverProvider = Provider.of<DriverProvider>(context, listen: false);
-    _controller =
-        ValueNotifier<bool>(driverProvider.isLive); // Set initial value
+    _controller = ValueNotifier<bool>(isLive); // Set initial value
 
     _controller.addListener(() {
       driverProvider.updateOnlineStatus(_controller.value);
     });
+  }
+
+  Future<void> _loadOnlineStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    isLive = prefs.getBool('isLive') ?? false;
   }
 
   void _onItemTapped(int index) {
