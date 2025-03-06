@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/order_model.dart';
+import '../models/order_model2.dart';
 import '../providers/order_provider.dart';
 import '../widgets/pendingDelivery_widgets.dart';
 import 'order_detail.dart';
@@ -14,7 +15,7 @@ class PendingDeliveries extends StatefulWidget {
 }
 
 class _PendingDeliveriesState extends State<PendingDeliveries> {
-  Future<List<Order>>? pendingOrder;
+  Future<List<Order2>>? pendingOrder;
   final Color acceptColor = const Color(0xFF2ECC71);
   final Color pendingColor = const Color(0xFFE74C3C);
 
@@ -45,7 +46,7 @@ class _PendingDeliveriesState extends State<PendingDeliveries> {
       ),
       body: RefreshIndicator(
         onRefresh: _refreshOrders,
-        child: FutureBuilder<List<Order>>(
+        child: FutureBuilder<List<Order2>>(
           future: pendingOrder,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {

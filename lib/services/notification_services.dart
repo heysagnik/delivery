@@ -149,7 +149,6 @@ class NotificationService {
             importance: Importance.high,
             priority: Priority.high,
             icon: '@mipmap/ic_launcher',
-            color: const Color.fromARGB(255, 122, 90, 248),
             visibility: NotificationVisibility.public,
             autoCancel: true,
           ),
