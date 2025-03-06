@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-
+import '../models/driver_model.dart';
 import '../screens/all_delivery_screen.dart';
 
 class DriverProfileHeader extends StatelessWidget {
-  final Map<String, dynamic> driver;
+  final Driver driver;
 
   const DriverProfileHeader({super.key, required this.driver});
 
@@ -12,7 +12,6 @@ class DriverProfileHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Driver profile card
         Card(
           elevation: 4,
           shape: RoundedRectangleBorder(
@@ -39,14 +38,9 @@ class DriverProfileHeader extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: driver['isActive'] == true
-                              ? Colors.green
-                              : Colors.red,
+                          color: driver.isActive ? Colors.green : Colors.red,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 2,
-                          ),
+                          border: Border.all(color: Colors.white, width: 2),
                         ),
                         height: 20,
                         width: 20,
@@ -60,50 +54,32 @@ class DriverProfileHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        driver['name'] ?? 'Unknown Driver',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        driver.name.isNotEmpty ? driver.name : 'Unknown Driver',
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          const Icon(
-                            Icons.phone,
-                            size: 16,
-                            color: Colors.grey,
-                          ),
+                          const Icon(Icons.phone, size: 16, color: Colors.grey),
                           const SizedBox(width: 4),
                           Text(
-                            driver['mobile'] ?? 'N/A',
+                            driver.mobile.isNotEmpty ? driver.mobile : 'N/A',
                             style: const TextStyle(fontSize: 16),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: driver['isActive'] == true
-                              ? Colors.green[50]
-                              : Colors.red[50],
+                          color: driver.isActive ? Colors.green[50] : Colors.red[50],
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: driver['isActive'] == true
-                                ? Colors.green
-                                : Colors.red,
-                          ),
+                          border: Border.all(color: driver.isActive ? Colors.green : Colors.red),
                         ),
                         child: Text(
-                          driver['isActive'] == true ? 'Active' : 'Inactive',
+                          driver.isActive ? 'Active' : 'Inactive',
                           style: TextStyle(
-                            color: driver['isActive'] == true
-                                ? Colors.green
-                                : Colors.red,
+                            color: driver.isActive ? Colors.green : Colors.red,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -122,60 +98,38 @@ class DriverProfileHeader extends StatelessWidget {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () {
-              // Navigate to driver's delivery history page
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => AllDeliveryScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const AllDeliveryScreen()),
               );
             },
-            icon: const Icon(
-              Icons.local_shipping,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.local_shipping, color: Colors.white),
             label: const Text('View All Deliveries'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2C3E50),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ),
         const SizedBox(height: 20),
 
-        // Driver stats section
+        // Driver Stats Section
         Text(
           'Driver Information',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[800],
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800]),
         ),
         const SizedBox(height: 12),
 
-        // Info cards
-        InfoCard(
-          icon: Icons.directions_car,
-          iconColor: Colors.blue,
-          title: 'Vehicle Type',
-          value: driver['vehicleType'] ?? 'N/A',
-        ),
-        InfoCard(
-          icon: Icons.location_on,
-          iconColor: Colors.red,
-          title: 'Current Location',
-          value: driver['location'] ?? 'Unknown',
-        ),
+        // Info Cards
+
+        InfoCard(icon: Icons.location_on, iconColor: Colors.red, title: 'Current Location', value: 'Unknown'),
         StatusInfoCard(
           icon: Icons.access_time_filled,
           iconColor: Colors.orange,
           title: 'Status',
-          isActive: driver['isLive'] == true,
+          isActive: driver.isLive,
           activeText: 'Live',
           inactiveText: 'Offline',
         ),
@@ -183,7 +137,7 @@ class DriverProfileHeader extends StatelessWidget {
           icon: Icons.run_circle,
           iconColor: Colors.green,
           title: 'Ready for Delivery',
-          isActive: driver['isReady'] == true,
+          isActive: driver.isReady,
           activeText: 'Ready to go',
           inactiveText: 'Not ready',
         ),
@@ -191,6 +145,7 @@ class DriverProfileHeader extends StatelessWidget {
     );
   }
 }
+
 
 class InfoCard extends StatelessWidget {
   final IconData icon;

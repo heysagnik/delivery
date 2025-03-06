@@ -1,7 +1,8 @@
 import 'package:delivery/providers/driver_provider.dart';
 import 'package:delivery/providers/notification_provider.dart';
+import 'package:delivery/providers/order_provider.dart';
 import 'package:delivery/screens/profile_screen.dart';
-import 'package:delivery/screens/available_delivery_screen.dart';
+import 'package:delivery/screens/available_deliveries_screen.dart';
 import 'package:delivery/screens/pending_deliveries_screen.dart';
 import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ class AppScreen extends StatefulWidget {
 }
 
 class _AppScreenState extends State<AppScreen> {
-  bool isLive=false;
+  bool isLive = false;
   int _selectedIndex = 0;
   late final ValueNotifier<bool> _controller;
 
@@ -32,13 +33,16 @@ class _AppScreenState extends State<AppScreen> {
     super.initState();
     _loadOnlineStatus();
     final driverProvider = Provider.of<DriverProvider>(context, listen: false);
-    _controller = ValueNotifier<bool>(isLive); // Set initial value
+
+    _controller = ValueNotifier<bool>(isLive);
 
     _controller.addListener(() {
       driverProvider.updateOnlineStatus(_controller.value);
     });
     Provider.of<NotificationProvider>(context, listen: false)
         .subscribeNotification();
+
+    Provider.of<OrderProvider>(context, listen: false).pendingOrderByDriver();
   }
 
   Future<void> _loadOnlineStatus() async {

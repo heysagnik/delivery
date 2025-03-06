@@ -22,8 +22,7 @@ class _PendingDeliveriesState extends State<PendingDeliveries> {
   @override
   void initState() {
     super.initState();
-    pendingOrder = Provider.of<OrderProvider>(context, listen: false)
-        .pendingOrderByDriver();
+    _refreshOrders();
   }
 
   Future<void> _refreshOrders() async {

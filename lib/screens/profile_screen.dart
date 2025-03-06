@@ -1,3 +1,4 @@
+import 'package:delivery/models/driver_model.dart';
 import 'package:delivery/providers/driver_provider.dart';
 import 'package:delivery/utils.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  Future<Map<String, dynamic>>? driverDetails;
+  Future<Driver>? driverDetails;
   bool isLoading = false;
 
   Future<void> _refreshDriverDetails() async {
@@ -21,8 +22,12 @@ class _ProfilePageState extends State<ProfilePage> {
     });
 
     try {
-      await Provider.of<DriverProvider>(context, listen: false)
+      final newDriver = await Provider.of<DriverProvider>(context, listen: false)
           .fetchDriverDetails();
+
+      setState(() {
+        driverDetails = Future.value(newDriver); // ✅ Now updates the UI
+      });
     } catch (error) {
       showSnackBar(context, 'Error refreshing driver details: $error');
     } finally {
@@ -32,6 +37,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         driverDetails = Provider.of<DriverProvider>(context, listen: false)
             .fetchDriverDetails();
+        // print(driverDetails);
       });
     });
   }
@@ -60,7 +67,7 @@ class _ProfilePageState extends State<ProfilePage> {
         onRefresh: _refreshDriverDetails,
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
-            : FutureBuilder<Map<String, dynamic>>(
+            : FutureBuilder<Driver>(
           future: driverDetails,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {

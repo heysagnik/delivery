@@ -3,7 +3,7 @@ import 'package:delivery/providers/auth_provider.dart';
 import 'package:delivery/providers/driver_provider.dart';
 import 'package:delivery/providers/notification_provider.dart';
 import 'package:delivery/providers/order_provider.dart';
-import 'package:delivery/screens/available_delivery_screen.dart';
+import 'package:delivery/screens/available_deliveries_screen.dart';
 import 'package:delivery/screens/login_screen.dart';
 import 'package:delivery/screens/otp_screen.dart';
 import 'package:delivery/screens/pending_deliveries_screen.dart';
@@ -78,8 +78,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
     _authProvider = Provider.of<AuthProvider>(context, listen: false);
     bool isLoggedIn = await _authProvider.checkIfSignedIn();
     if (mounted) {
-      setState(() => _isChecking = false);
       _authProvider.initializeAuthState();
+      setState(() => _isChecking = false);
     }
   }
 

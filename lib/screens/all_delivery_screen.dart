@@ -134,16 +134,6 @@ class _AllDeliveryScreenState extends State<AllDeliveryScreen> {
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              setState(() {
-                _loadDeliveries();
-              });
-            },
-          ),
-        ],
       ),
       body: RefreshIndicator(
         key: _refreshKey,

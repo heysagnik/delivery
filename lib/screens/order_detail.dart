@@ -59,14 +59,22 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     if (mounted) setState(() => _isRefreshing = false);
   }
 
-  Future<void> _updateOrderStatus(Order order, String status) async {
+  Future<void> _updateOrderStatus(Order order, String status,
+      [String? paymentMethod]) async {
     if (_isRefreshing) return;
 
     setState(() => _isRefreshing = true);
 
     try {
       final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-      await orderProvider.changeOrderStatus(order.orderPK, status);
+
+      // Add paymentMethod parameter to the changeOrderStatus call when status is delivered
+      if (status == STATUS_DELIVERED && paymentMethod != null) {
+        await orderProvider.changeOrderStatus(order.orderPK, status,
+            paymentMethod: paymentMethod);
+      } else {
+        await orderProvider.changeOrderStatus(order.orderPK, status);
+      }
 
       // Refresh order details to get the updated status
       await _loadOrderDetails();
@@ -128,7 +136,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         child: FutureBuilder<Order>(
           future: _orderDetails,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting || _isRefreshing) {
+            if (snapshot.connectionState == ConnectionState.waiting ||
+                _isRefreshing) {
               return const Center(child: CircularProgressIndicator());
             }
 
@@ -210,28 +219,186 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           'Pickup Order',
           Icons.directions_bike,
           Colors.orange,
-              () => _updateOrderStatus(order, STATUS_PICKED),
+          () => _updateOrderStatus(order, STATUS_PICKED),
         );
       case 'picked':
         return _buildActionButton(
           'Reached Customer',
           Icons.location_on,
           Colors.deepPurple,
-              () => _updateOrderStatus(order, STATUS_REACHED),
+          () => _updateOrderStatus(order, STATUS_REACHED),
         );
       case 'reached':
-        return _buildActionButton(
-          'Delivered Order',
-          Icons.check_circle,
-          Colors.green,
-              () => _updateOrderStatus(order, STATUS_DELIVERED),
+        return Column(
+          children: [
+            _buildActionButton(
+              'Delivered Order',
+              Icons.check_circle,
+              Colors.green,
+              () {
+                _showPaymentMethodDialog(order);
+              },
+            ),
+            const SizedBox(height: 8),
+            _buildActionButton('Reject Order', Icons.cancel, Colors.red, () {
+              _showRejectReasonDialog(order);
+            }),
+          ],
         );
       default:
         return const SizedBox.shrink(); // No button for other statuses
     }
   }
 
-  Widget _buildActionButton(String label, IconData icon, Color color, VoidCallback onPressed) {
+  void _showPaymentMethodDialog(Order order) {
+    String? selectedPaymentMethod;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select Payment Method'),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RadioListTile<String>(
+                    title: const Text('Cash'),
+                    value: 'cash',
+                    groupValue: selectedPaymentMethod,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedPaymentMethod = value;
+                      });
+                    },
+                  ),
+                  RadioListTile<String>(
+                    title: const Text('Credit Card'),
+                    value: 'credit_card',
+                    groupValue: selectedPaymentMethod,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedPaymentMethod = value;
+                      });
+                    },
+                  ),
+                  RadioListTile<String>(
+                    title: const Text('Online Payment'),
+                    value: 'online',
+                    groupValue: selectedPaymentMethod,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedPaymentMethod = value;
+                      });
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (selectedPaymentMethod != null) {
+                  Navigator.of(context).pop();
+                  // Update order status with payment method
+                  _updateOrderStatus(
+                      order, STATUS_DELIVERED, selectedPaymentMethod);
+                }
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.green,
+              ),
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showRejectReasonDialog(Order order) {
+    String? selectedReason;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select Rejection Reason'),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RadioListTile<String>(
+                    title: const Text('wrong item delivered'),
+                    value: 'wrong item delivered',
+                    groupValue: selectedReason,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedReason = value;
+                      });
+                    },
+                  ),
+                  RadioListTile<String>(
+                    title: const Text('customer not available'),
+                    value: 'customer not available',
+                    groupValue: selectedReason,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedReason = value;
+                      });
+                    },
+                  ),
+                  RadioListTile<String>(
+                    title: const Text('customer refused delivery'),
+                    value: 'customer refused delivery',
+                    groupValue: selectedReason,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedReason = value;
+                      });
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (selectedReason != null) {
+                  Navigator.of(context).pop();
+                  // Update order status with payment method
+                  _updateOrderStatus(order, STATUS_REJECTED, selectedReason);
+                }
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.green,
+              ),
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildActionButton(
+      String label, IconData icon, Color color, VoidCallback onPressed) {
     return SizedBox(
       width: double.infinity,
       child: Padding(
@@ -254,9 +421,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     );
   }
 
-  Widget _buildOrderDetails(Order order, Color primaryColor, Color accentColor) {
+  Widget _buildOrderDetails(
+      Order order, Color primaryColor, Color accentColor) {
     final statusText = order.deliveryStatus;
-    final bool isAccepted = ['accepted', 'picked', 'reached'].contains(statusText.toLowerCase());
+    final bool isAccepted =
+        ['accepted', 'picked', 'reached'].contains(statusText.toLowerCase());
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -270,11 +439,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (isAccepted)
-                  _buildCustomerSection(order, accentColor,primaryColor),
-                  _buildDeliverySection(order, accentColor, primaryColor),
+                  _buildCustomerSection(order, accentColor, primaryColor),
+                _buildDeliverySection(order, accentColor, primaryColor),
                 _buildSectionHeader('Order Items'),
                 _buildOrderItemsCard(order, accentColor),
-
                 const SizedBox(height: 30),
               ],
             ),
@@ -367,7 +535,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
@@ -398,7 +567,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     );
   }
 
-  Widget _buildDeliverySection(Order order, Color accentColor, Color primaryColor) {
+  Widget _buildDeliverySection(
+      Order order, Color accentColor, Color primaryColor) {
     final deliveryBoyName = order.deliveryBoy.name.isNotEmpty
         ? order.deliveryBoy.name
         : "Not Assigned";
@@ -471,7 +641,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     );
   }
 
-  Widget _buildCustomerSection(Order order, Color accentColor, Color primaryColor) {
+  Widget _buildCustomerSection(
+      Order order, Color accentColor, Color primaryColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -535,19 +706,21 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                         icon: const Icon(Icons.phone),
                         color: primaryColor,
                         iconSize: 20,
-                          onPressed: () async {
-                            final Uri url = Uri.parse('tel:${order.shippingPhone}');
-                            try {
-                              if (await canLaunchUrl(url)) {
-                                await launchUrl(url,mode: LaunchMode.externalApplication);
-                              } else {
-                                print('Could not launch $url');
-                              }
-                            } catch (e) {
-                              print('Error launching URL: $e');
-                              // Show a fallback option or error message to the user
+                        onPressed: () async {
+                          final Uri url =
+                              Uri.parse('tel:${order.shippingPhone}');
+                          try {
+                            if (await canLaunchUrl(url)) {
+                              await launchUrl(url,
+                                  mode: LaunchMode.externalApplication);
+                            } else {
+                              print('Could not launch $url');
                             }
-                          },
+                          } catch (e) {
+                            print('Error launching URL: $e');
+                            // Show a fallback option or error message to the user
+                          }
+                        },
                       ),
                     ),
                   ],
@@ -620,7 +793,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               if (i < items.length - 1) const Divider(height: 24),
             ],
             const Divider(height: 24),
-            _buildTotalRow('Grand Total', '₹${order.totalAmount}', isBold: true),
+            _buildTotalRow('Grand Total', '₹${order.totalAmount}',
+                isBold: true),
           ],
         ),
       ),
