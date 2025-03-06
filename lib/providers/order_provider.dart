@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/order_model.dart';
+import '../models/order_model2.dart';
 
 class OrderProvider extends ChangeNotifier {
   Future<String?> getSelectedDriverId() async {
@@ -54,7 +55,7 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  Future<List<Order>> pendingOrderByDriver() async {
+  Future<List<Order2>> pendingOrderByDriver() async {
     var selectedDriver = await getSelectedDriverId();
     try {
       final url =
@@ -65,7 +66,7 @@ class OrderProvider extends ChangeNotifier {
         final List<dynamic> jsonList = jsonDecode(response.body);
         print('Raw API Response: ${response.body}');
 
-        return jsonList.map((json) => Order.fromJson(json)).toList();
+        return jsonList.map((json) => Order2.fromJson(json)).toList();
       } else {
         throw Exception('Failed to complete order');
       }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../models/order_model.dart';
+import '../models/order_model2.dart';
 
 class OrderCard extends StatelessWidget {
-  final Order order;
+  final Order2 order;
   final Color acceptColor;
   final Color pendingColor;
   final VoidCallback onViewDetails;
@@ -117,7 +117,7 @@ class OrderCard extends StatelessWidget {
 }
 
 class ItemsList extends StatelessWidget {
-  final List<Item> items;
+  final List<Item2> items;
 
   const ItemsList({super.key, required this.items});
 

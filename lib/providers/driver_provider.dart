@@ -15,6 +15,12 @@ class DriverProvider extends ChangeNotifier {
     return secureStorage.read(key: 'token');
   }
 
+  Future<String?> getSelectedDriverId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('id');
+
+  }
+
   // Future<void> _loadOnlineStatus() async {
   //   SharedPreferences prefs = await SharedPreferences.getInstance();
   //   _isLive = prefs.getBool('isLive') ?? false;
@@ -24,7 +30,8 @@ class DriverProvider extends ChangeNotifier {
   Future<Map<String, dynamic>> fetchDriverDetails() async {
     try {
       final token = getToken();
-      final url = 'https://daykart.com/api/driver/profile';
+      final driverId = await getSelectedDriverId();
+      final url = 'http://taskmaster.outlfy.com/api/driver-details/$driverId';
       final response = await http.get(headers: {
         "Content-Type": "application/json",
         "Authorization": "$token",
