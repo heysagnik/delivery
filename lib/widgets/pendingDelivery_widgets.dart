@@ -401,7 +401,7 @@ class _OrderElapsedTimerState extends State<OrderElapsedTimer> {
   late Timer _timer;
   late Duration _elapsed;
   late DateTime _acceptedTime;
-  final Duration _expectedDeliveryTime = const Duration(minutes: 45);
+  final Duration _expectedDeliveryTime = const Duration(minutes: 15);
 
   @override
   void initState() {

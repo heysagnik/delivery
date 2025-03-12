@@ -4,7 +4,7 @@ import 'package:delivery/providers/order_provider.dart';
 import 'package:delivery/screens/profile_screen.dart';
 import 'package:delivery/screens/available_deliveries_screen.dart';
 import 'package:delivery/screens/pending_deliveries_screen.dart';
-import 'package:flutter_advanced_switch/flutter_advanced_switch.dart';
+import 'package:lite_rolling_switch/lite_rolling_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
@@ -18,9 +18,8 @@ class AppScreen extends StatefulWidget {
 }
 
 class _AppScreenState extends State<AppScreen> {
-  bool isLive = false;
+  late bool isLive;
   int _selectedIndex = 0;
-  late final ValueNotifier<bool> _controller;
 
   final List<Widget> _pages = <Widget>[
     PendingDeliveries(),
@@ -32,13 +31,7 @@ class _AppScreenState extends State<AppScreen> {
   void initState() {
     super.initState();
     _loadOnlineStatus();
-    final driverProvider = Provider.of<DriverProvider>(context, listen: false);
 
-    _controller = ValueNotifier<bool>(isLive);
-
-    _controller.addListener(() {
-      driverProvider.updateOnlineStatus(_controller.value);
-    });
     Provider.of<NotificationProvider>(context, listen: false)
         .subscribeNotification();
 
@@ -47,7 +40,25 @@ class _AppScreenState extends State<AppScreen> {
 
   Future<void> _loadOnlineStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    isLive = prefs.getBool('isLive') ?? false;
+    setState(() {
+      isLive = prefs.getBool('isLive') ?? false;
+    });
+
+    // Update driver provider with saved status
+    final driverProvider = Provider.of<DriverProvider>(context, listen: false);
+    await driverProvider.updateOnlineStatus(isLive);
+  }
+
+  Future<void> _saveOnlineStatus(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLive', value);
+    setState(() {
+      isLive = value;
+    });
+
+    // Update driver provider with new status
+    final driverProvider = Provider.of<DriverProvider>(context, listen: false);
+    driverProvider.updateOnlineStatus(value);
   }
 
   void _onItemTapped(int index) {
@@ -61,31 +72,26 @@ class _AppScreenState extends State<AppScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        leadingWidth: 110,
+        leadingWidth: 130,
         leading: Container(
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: AdvancedSwitch(
-            inactiveChild: const Text(
-              "OFFLINE",
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white),
-            ),
-            activeChild: const Text(
-              "ONLINE",
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white),
-            ),
-            controller: _controller,
-            borderRadius: BorderRadius.circular(20),
-            activeColor: Colors.green.shade600,
-            inactiveColor: Colors.grey.shade600,
-            width: 90,
-            height: 35,
+          child: LiteRollingSwitch(
+            value: isLive,
+            textOn: 'ONLINE',
+            textOff: 'OFFLINE',
+            colorOn: Colors.green.shade600,
+            colorOff: Colors.grey.shade600,
+            iconOn: Icons.check,
+            iconOff: Icons.close,
+            textSize: 12.0,
+            onTap: () {},
+            onDoubleTap: () {},
+            onSwipe: () {},
+            onChanged: (bool state) {
+              _saveOnlineStatus(state);
+            },
+            width: 110,
           ),
         ),
         actions: [

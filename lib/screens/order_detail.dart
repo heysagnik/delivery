@@ -250,7 +250,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     }
   }
 
-  void _showPaymentMethodDialog(Order order) {
+  void
+  _showPaymentMethodDialog(Order order) {
     String? selectedPaymentMethod;
 
     showDialog(

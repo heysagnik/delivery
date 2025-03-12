@@ -13,8 +13,8 @@ class DriverProvider extends ChangeNotifier {
   bool get isLive => _isLive;
 
   Future<String?> getToken() async {
-    final secureStorage = const FlutterSecureStorage();
-    return await secureStorage.read(key: 'token');
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
   }
 
   Future<String?> getSelectedDriverId() async {
@@ -82,6 +82,7 @@ class DriverProvider extends ChangeNotifier {
         _isLive = isOnline; // Update local state
         notifyListeners(); // Notify UI to update
         print("Status updated successfully: isLive = $isLive");
+        fetchDriverDetails();
       } else {
         debugPrint("Failed to update status: ${response.body}");
       }
@@ -90,7 +91,7 @@ class DriverProvider extends ChangeNotifier {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchAllDeliveries() async {
+  Future<List<Map<String, dynamic>>> fetchAllDoneDeliveries() async {
     try {
       final url = 'http://taskmaster.outlfy.com/api/delivered-deliveries';
       final response = await http.get(Uri.parse(url));

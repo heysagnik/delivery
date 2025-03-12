@@ -22,7 +22,7 @@ class _AllDeliveryScreenState extends State<AllDeliveryScreen> {
 
   void _loadDeliveries() {
     deliveries = Provider.of<DriverProvider>(context, listen: false)
-        .fetchAllDeliveries();
+        .fetchAllDoneDeliveries();
   }
 
   Map<String, dynamic> _calculateStats(
@@ -34,7 +34,7 @@ class _AllDeliveryScreenState extends State<AllDeliveryScreen> {
     int completedDeliveriesWithTime = 0;
 
     for (var delivery in deliveryList) {
-      final deliveredAtStr = delivery['timeline']?['deliveredAt'];
+      final deliveredAtStr = delivery['timeline']?['deliveredAt'] ?? delivery['timeline']?['rejectedAt'];
       if (deliveredAtStr != null) {
         try {
           final deliveredAt = DateTime.parse(deliveredAtStr);
@@ -43,8 +43,7 @@ class _AllDeliveryScreenState extends State<AllDeliveryScreen> {
           if (deliveredDate.isAtSameMomentAs(today)) todayDeliveries++;
 
           final acceptedAtStr = delivery['timeline']?['acceptedAt'];
-          if (acceptedAtStr != null &&
-              delivery['deliveryStatus'] == 'delivered') {
+          if (acceptedAtStr != null) {
             final acceptedAt = DateTime.parse(acceptedAtStr);
             totalDeliveryTimeMinutes +=
                 deliveredAt.difference(acceptedAt).inMinutes;
@@ -71,14 +70,14 @@ class _AllDeliveryScreenState extends State<AllDeliveryScreen> {
     final grouped = <String, List<Map<String, dynamic>>>{};
 
     for (var delivery in deliveryList) {
-      final deliveredAtStr = delivery['timeline']?['deliveredAt'];
+      final deliveredAtStr = delivery['timeline']?['deliveredAt'] ?? delivery['timeline']?['rejectedAt'];
       if (deliveredAtStr != null) {
         try {
           final deliveredAt = DateTime.parse(deliveredAtStr);
           final dateStr = DateFormat('yyyy-MM-dd').format(deliveredAt);
           grouped.putIfAbsent(dateStr, () => []);
 
-          final acceptedAtStr = delivery['timeline']?['acceptedAt'];
+          final acceptedAtStr = delivery['timeline']?['acceptedAt'] ?? delivery['timeline']?['rejectedAt'];
           if (acceptedAtStr != null) {
             final acceptedAt = DateTime.parse(acceptedAtStr);
             delivery['deliveryTimeMinutes'] =

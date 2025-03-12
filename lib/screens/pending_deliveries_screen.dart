@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../models/order_model.dart';
 import '../models/order_model2.dart';
 import '../providers/order_provider.dart';
 import '../widgets/pendingDelivery_widgets.dart';
@@ -90,24 +88,27 @@ class _PendingDeliveriesState extends State<PendingDeliveries> {
                 ),
               );
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.check_circle_outline,
-                        color: Colors.green, size: 48),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No pending deliveries found.',
-                      style: TextStyle(color: Colors.grey[700], fontSize: 16),
-                    ),
-                  ],
+              return RefreshIndicator(
+                onRefresh: _refreshOrders,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.check_circle_outline,
+                          color: Colors.green, size: 48),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No pending deliveries found.',
+                        style: TextStyle(color: Colors.grey[700], fontSize: 16),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
 
             return ListView.builder(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(8.0),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 final order = snapshot.data![index];

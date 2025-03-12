@@ -286,7 +286,7 @@ class OrderCard extends StatefulWidget {
   final Order order;
   final Color acceptColor;
   final Color pendingColor;
-  final VoidCallback onAccept;
+  final Future<void> Function() onAccept;
   const OrderCard({
     super.key,
     required this.order,
@@ -299,6 +299,9 @@ class OrderCard extends StatefulWidget {
 }
 
 class _OrderCardState extends State<OrderCard> {
+  // New state variable to ensure the button is only clicked once.
+  bool _isButtonClicked = false;
+
   // Helper method to format date.
   String _formatDateTime(String dateTimeString) {
     try {
@@ -307,6 +310,15 @@ class _OrderCardState extends State<OrderCard> {
     } catch (e) {
       return dateTimeString;
     }
+  }
+
+  // Handles the accept action and disables the button after clicking.
+  Future<void> _handleAccept() async {
+    if (_isButtonClicked) return;
+    setState(() {
+      _isButtonClicked = true;
+    });
+    await widget.onAccept();
   }
 
   @override
@@ -426,12 +438,13 @@ class _OrderCardState extends State<OrderCard> {
             OrderItemList(items: widget.order.items),
             const SizedBox(height: 16),
 
-            // Accept Button (always enabled)
+            // Accept Button (disabled after first click)
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton.icon(
-                  onPressed: widget.onAccept,
+                  // Disable the button after it has been clicked once.
+                  onPressed: _isButtonClicked ? null : _handleAccept,
                   icon: const Icon(Icons.delivery_dining, color: Colors.white),
                   label: const Text('Accept'),
                   style: ElevatedButton.styleFrom(
@@ -447,3 +460,4 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 }
+

@@ -43,9 +43,7 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     Future.delayed(Duration.zero, () {
       setState(() {
-        driverDetails = Provider.of<DriverProvider>(context, listen: false)
-            .fetchDriverDetails();
-        // print(driverDetails);
+        _refreshDriverDetails();
       });
     });
   }
