@@ -8,6 +8,9 @@ import '../models/order_model.dart';
 import '../models/order_model2.dart';
 
 class OrderProvider extends ChangeNotifier {
+  final List<Order2> _pendingDeliveries = [];
+  List<Order2> get pendingDeliveries => _pendingDeliveries;
+
   Future<String?> getSelectedDriverId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('id');
@@ -64,7 +67,6 @@ class OrderProvider extends ChangeNotifier {
       if (response.statusCode == 200) {
         print('Pending orders fetched successfully');
         final List<dynamic> jsonList = jsonDecode(response.body);
-        print('Raw API Response: ${response.body}');
 
         return jsonList.map((json) => Order2.fromJson(json)).toList();
       } else {
@@ -95,14 +97,15 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> changeOrderStatus(int orderPK, String status) async {
+  Future<void> changeOrderStatus(int orderPK, String status, {String? paymentMethod, String? reason}) async {
     try {
       final url = 'https://taskmaster.outlfy.com/api/update-status';
       final body = jsonEncode({
         "status": status,
         "deliveryId": orderPK,
+        if(paymentMethod!=null)"paymentMethod": paymentMethod,
+        if(reason!=null)"reason": reason,
       });
-
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},

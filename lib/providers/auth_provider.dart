@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,19 +10,21 @@ class AuthProvider extends ChangeNotifier {
   bool _isSignedIn = false;
 
   String? get token => _token;
+
   String? get hash => _hash;
+
   String? get mobile => _mobile;
+
   bool get isSignedIn => _isSignedIn;
 
   final String baseUrl = "https://daykart.com/api/driver";
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   // Check if user is signed in
   Future<bool> checkIfSignedIn() async {
-    final values = await _secureStorage.readAll();
-    _token = values['token'];
-    _hash = values['hash'];
-    _mobile = values['mobile'];
+    final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString('token');
+    _hash = prefs.getString('hash');
+    _mobile = prefs.getString('mobile');
 
     _isSignedIn = _token != null;
     notifyListeners();
@@ -34,11 +35,10 @@ class AuthProvider extends ChangeNotifier {
   // Initialize authentication state
   Future<void> initializeAuthState() async {
     final prefs = await SharedPreferences.getInstance();
-    final values = await _secureStorage.readAll();
 
-    _token = values['token'];
-    _hash = values['hash'];
-    _mobile = values['mobile'];
+    _token = prefs.getString('token');
+    _hash = prefs.getString('hash');
+    _mobile = prefs.getString('mobile');
     _isSignedIn = prefs.getBool('isSignedIn') ?? false;
 
     notifyListeners();
@@ -56,10 +56,11 @@ class AuthProvider extends ChangeNotifier {
         body: jsonEncode({'mobile': phoneNumber}),
       );
 
+      final prefs = await SharedPreferences.getInstance();
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        await _secureStorage.write(key: 'hash', value: data['hash']);
-        await _secureStorage.write(key: 'mobile', value: data['mobile']);
+        prefs.setString('hash', data['hash']);
+        prefs.setString('mobile', phoneNumber);
         notifyListeners();
       } else {
         throw Exception('Login failed: ${response.body}');
@@ -73,10 +74,10 @@ class AuthProvider extends ChangeNotifier {
   // Function to verify OTP
   Future<void> verifyOTP(String otp) async {
     final verifyUrl = '$baseUrl/login/verifyotp';
-
+    final prefs = await SharedPreferences.getInstance();
     // Await values from secure storage
-    final String? hash = await _secureStorage.read(key: 'hash');
-    final String? mobile = await _secureStorage.read(key: 'mobile');
+    final String? hash = prefs.getString('hash');
+    final String? mobile = prefs.getString('mobile');
 
     if (mobile == null || hash == null) {
       throw Exception('Missing required authentication data');
@@ -97,9 +98,9 @@ class AuthProvider extends ChangeNotifier {
 
       if (response.statusCode == 200 && data['token'] != null) {
         _token = data['token'];
-        await _secureStorage.write(key: 'token', value: _token);
 
         final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', _token!);
         _isSignedIn = true;
         await prefs.setBool('isSignedIn', true);
 
@@ -109,12 +110,12 @@ class AuthProvider extends ChangeNotifier {
 
         notifyListeners();
       } else {
-        throw Exception('OTP verification failed: ${data['error'] ?? 'Unknown error'}');
+        throw Exception(
+            'OTP verification failed: ${data['error'] ?? 'Unknown error'}');
       }
     } catch (e) {
       debugPrint('OTP verification error: $e');
       throw Exception('OTP verification failed');
     }
   }
-
 }
