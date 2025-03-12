@@ -55,7 +55,8 @@ class DriverProfileHeader extends StatelessWidget {
                     children: [
                       Text(
                         driver.name.isNotEmpty ? driver.name : 'Unknown Driver',
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -70,11 +71,16 @@ class DriverProfileHeader extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: driver.isActive ? Colors.green[50] : Colors.red[50],
+                          color: driver.isActive
+                              ? Colors.green[50]
+                              : Colors.red[50],
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: driver.isActive ? Colors.green : Colors.red),
+                          border: Border.all(
+                              color:
+                                  driver.isActive ? Colors.green : Colors.red),
                         ),
                         child: Text(
                           driver.isActive ? 'Active' : 'Inactive',
@@ -100,7 +106,8 @@ class DriverProfileHeader extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AllDeliveryScreen()),
+                MaterialPageRoute(
+                    builder: (context) => const AllDeliveryScreen()),
               );
             },
             icon: const Icon(Icons.local_shipping, color: Colors.white),
@@ -109,7 +116,8 @@ class DriverProfileHeader extends StatelessWidget {
               backgroundColor: const Color(0xFF2C3E50),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ),
@@ -118,13 +126,20 @@ class DriverProfileHeader extends StatelessWidget {
         // Driver Stats Section
         Text(
           'Driver Information',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800]),
+          style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[800]),
         ),
         const SizedBox(height: 12),
 
         // Info Cards
 
-        InfoCard(icon: Icons.location_on, iconColor: Colors.red, title: 'Current Location', value: 'Unknown'),
+        InfoCard(
+            icon: Icons.location_on,
+            iconColor: Colors.red,
+            title: 'Current Location',
+            value: 'Unknown'),
         StatusInfoCard(
           icon: Icons.access_time_filled,
           iconColor: Colors.orange,
@@ -145,7 +160,6 @@ class DriverProfileHeader extends StatelessWidget {
     );
   }
 }
-
 
 class InfoCard extends StatelessWidget {
   final IconData icon;
