@@ -327,7 +327,8 @@ class _OrderCardState extends State<OrderCard> {
       margin: const EdgeInsets.only(bottom: 16.0),
       elevation: 4,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(16.0),
+        side: BorderSide(color: Colors.grey.shade200, width: 0.5),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -338,15 +339,27 @@ class _OrderCardState extends State<OrderCard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Chip(
-                  label: Text(
-                    'Order #${widget.order.orderPK}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.receipt_long,
+                        color: Theme.of(context).primaryColor,
+                        size: 24,
+                      ),
                     ),
-                  ),
-                  backgroundColor: Theme.of(context).primaryColor,
+                    const SizedBox(width: 12),
+                    Text(
+                      'Order #${widget.order.orderPK}',
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
                 Chip(
                   label: Text(
@@ -357,9 +370,12 @@ class _OrderCardState extends State<OrderCard> {
                     ),
                   ),
                   backgroundColor: widget.pendingColor,
+                  visualDensity: VisualDensity.compact,
                 ),
               ],
             ),
+
+            const SizedBox(height: 12),
 
             // Countdown Timer Section (modularized)
             OrderCountdownTimer(
@@ -368,91 +384,199 @@ class _OrderCardState extends State<OrderCard> {
 
             const Divider(height: 24),
 
-            // Created On Timeline
-            Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 20, color: Colors.grey),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            // Side by side layout for Order Date and Shipping Address
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Created On Timeline - Left side
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          bottomLeft: Radius.circular(12),
+                        ),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.calendar_today,
+                                  size: 20,
+                                  color: Theme.of(context).primaryColor),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Created On:',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _formatDateTime(widget.order.createdAt),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  Container(
+                    height: double.infinity,
+                    width: 1,
+                    color: Colors.grey.shade300,
+                  ),
+
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: const BorderRadius.only(
+                          topRight: Radius.circular(12),
+                          bottomRight: Radius.circular(12),
+                        ),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.location_on,
+                                  size: 20,
+                                  color: Theme.of(context).primaryColor),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Shipping Address:',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                        
+                          Text(
+                            "${widget.order.shippingName}\n${widget.order.shippingAddress1}\n${widget.order.shippingPhone}",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[800],
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Total Amount Row - Enhanced appearance
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
                     children: [
+                      Icon(Icons.payments_rounded,
+                          color: Theme.of(context).primaryColor, size: 20),
+                      const SizedBox(width: 8),
                       Text(
-                        'Created On:',
+                        'Total Amount:',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[700],
+                          color: Colors.grey[800],
                           fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        _formatDateTime(widget.order.createdAt),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  Text(
+                    '₹${widget.order.totalAmount}',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ],
+              ),
             ),
+
             const SizedBox(height: 16),
 
-            // Total Amount Row
+            // Items List Header
             Row(
               children: [
-                const Icon(Icons.payments, size: 20),
+                Icon(Icons.shopping_bag_outlined,
+                    color: Theme.of(context).primaryColor, size: 18),
                 const SizedBox(width: 8),
                 Text(
-                  'Total Amount:',
+                  'Items:',
                   style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '₹${widget.order.totalAmount}',
-                  style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).primaryColor,
                   ),
                 ),
+                const Spacer(),
+                Text(
+                  '${widget.order.items.length} items',
+                  style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500),
+                ),
               ],
-            ),
-            const SizedBox(height: 16),
-
-            // Items List (modularized)
-            Text(
-              'Items:',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor,
-              ),
             ),
             const SizedBox(height: 8),
             OrderItemList(items: widget.order.items),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            // Accept Button (disabled after first click)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton.icon(
-                  // Disable the button after it has been clicked once.
-                  onPressed: _isButtonClicked ? null : _handleAccept,
-                  icon: const Icon(Icons.delivery_dining, color: Colors.white),
-                  label: const Text('Accept'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: widget.acceptColor,
-                    foregroundColor: Colors.white,
+            // Accept Button - Full width and more prominent
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isButtonClicked ? null : _handleAccept,
+                icon: const Icon(Icons.delivery_dining, color: Colors.white),
+                label:
+                    Text(_isButtonClicked ? 'Processing...' : 'Accept Order'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: widget.acceptColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  disabledBackgroundColor: Colors.grey,
                 ),
-              ],
+              ),
             ),
           ],
         ),
@@ -460,4 +584,3 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 }
-

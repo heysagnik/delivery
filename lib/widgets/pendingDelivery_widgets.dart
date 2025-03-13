@@ -48,7 +48,6 @@ class OrderCard extends StatelessWidget {
               const SizedBox(height: 14),
               OrderItemsSection(order: order),
               const SizedBox(height: 14),
-              ShippingAddressSection(order: order),
               const SizedBox(height: 14),
               OrderElapsedTimer(acceptedAt: order.timeline.acceptedAt),
               const SizedBox(height: 14),
@@ -124,11 +123,6 @@ class OrderHeader extends StatelessWidget {
               ],
             ),
           ],
-        ),
-        Positioned(
-          right: 0,
-          top: 0,
-          child: ElapsedTimeBadge(acceptedAt: order.timeline.acceptedAt),
         ),
       ],
     );
@@ -219,83 +213,83 @@ class OrderItemsSection extends StatelessWidget {
   }
 }
 
-class ShippingAddressSection extends StatelessWidget {
-  final Order2 order;
-  const ShippingAddressSection({super.key, required this.order});
+// class ShippingAddressSection extends StatelessWidget {
+//   final Order2 order;
+//   const ShippingAddressSection({super.key, required this.order});
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header row with shipping icon and title
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.location_on_outlined,
-                      color: Theme.of(context).primaryColor, size: 18),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Shipping Address:',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                ],
-              ),
-              // "Created On" section with date
-              Row(
-                children: [
-                  Icon(Icons.calendar_today_outlined,
-                      color: Theme.of(context).primaryColor, size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Created: ${_formatDate(order.timeline.acceptedAt)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Address text
-          Text(
-            order.shippingAddress1,
-            style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[800],
-                fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
-    );
-  }
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       padding: const EdgeInsets.all(16),
+//       decoration: BoxDecoration(
+//         color: Colors.grey.shade50,
+//         borderRadius: BorderRadius.circular(12),
+//         border: Border.all(color: Colors.grey.shade200),
+//       ),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           // Header row with shipping icon and title
+//           Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               Row(
+//                 children: [
+//                   Icon(Icons.location_on_outlined,
+//                       color: Theme.of(context).primaryColor, size: 18),
+//                   const SizedBox(width: 6),
+//                   Text(
+//                     'Shipping Address:',
+//                     style: TextStyle(
+//                       fontSize: 14,
+//                       fontWeight: FontWeight.bold,
+//                       color: Theme.of(context).primaryColor,
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//               // "Created On" section with date
+//               Row(
+//                 children: [
+//                   Icon(Icons.calendar_today_outlined,
+//                       color: Theme.of(context).primaryColor, size: 16),
+//                   const SizedBox(width: 4),
+//                   Text(
+//                     'Created: ${_formatDate(order.timeline.acceptedAt)}',
+//                     style: TextStyle(
+//                       fontSize: 12,
+//                       fontWeight: FontWeight.w500,
+//                       color: Colors.grey[700],
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ],
+//           ),
+//           const SizedBox(height: 8),
+//           // Address text
+//           Text(
+//             order.shippingAddress1,
+//             style: TextStyle(
+//                 fontSize: 14,
+//                 color: Colors.grey[800],
+//                 fontWeight: FontWeight.w500),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
 
-  // Helper method to format the date
-  String _formatDate(String dateString) {
-    try {
-      final date = DateTime.parse(dateString);
-      return '${date.day}/${date.month}/${date.year}';
-    } catch (e) {
-      return 'Unknown date';
-    }
-  }
-}
+//   // Helper method to format the date
+//   String _formatDate(String dateString) {
+//     try {
+//       final date = DateTime.parse(dateString);
+//       return '${date.day}/${date.month}/${date.year}';
+//     } catch (e) {
+//       return 'Unknown date';
+//     }
+//   }
+// }
 
 // ActionButton widget displays the full-width button.
 class ActionButton extends StatelessWidget {
