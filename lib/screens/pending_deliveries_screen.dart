@@ -96,21 +96,18 @@ class _PendingDeliveriesState extends State<PendingDeliveries> {
                 ),
               );
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return RefreshIndicator(
-                onRefresh: _refreshOrders,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.check_circle_outline,
-                          color: Colors.green, size: 48),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No pending deliveries found.',
-                        style: TextStyle(color: Colors.grey[700], fontSize: 16),
-                      ),
-                    ],
-                  ),
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.check_circle_outline,
+                        color: Colors.green, size: 48),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No pending deliveries found.',
+                      style: TextStyle(color: Colors.grey[700], fontSize: 16),
+                    ),
+                  ],
                 ),
               );
             }
