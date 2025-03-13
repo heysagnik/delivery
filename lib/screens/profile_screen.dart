@@ -70,23 +70,23 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text(
-          'Driver Details',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(PhosphorIconsBold.signOut, color: Colors.red),
-            onPressed: _logout,
-            tooltip: 'Logout',
-          ),
-          SizedBox(width: 16),
-        ],
-      ),
+      // appBar: AppBar(
+      //   backgroundColor: Colors.white,
+      //   title: const Text(
+      //     'Driver Details',
+      //     style: TextStyle(
+      //       fontWeight: FontWeight.bold,
+      //     ),
+      //   ),
+      //   actions: [
+      //     IconButton(
+      //       icon: const Icon(PhosphorIconsBold.signOut, color: Colors.red),
+      //       onPressed: _logout,
+      //       tooltip: 'Logout',
+      //     ),
+      //     SizedBox(width: 16),
+      //   ],
+      // ),
       body: RefreshIndicator(
         onRefresh: _refreshDriverDetails,
         child: isLoading

@@ -40,6 +40,14 @@ class _AvailableDeliveriesState extends State<AvailableDeliveries> {
           'Available Orders',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshOrders,
+            tooltip: 'Refresh Orders',
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _refreshOrders,
