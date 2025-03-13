@@ -10,6 +10,22 @@ import '../models/order_model2.dart';
 class OrderProvider extends ChangeNotifier {
   final List<Order2> _pendingDeliveries = [];
   List<Order2> get pendingDeliveries => _pendingDeliveries;
+  Order? _latestNewOrder;
+
+  // Getter for the latest new order
+  Order? get latestNewOrder => _latestNewOrder;
+
+  // Method to set the latest new order received via FCM
+  void setLatestNewOrder(Order order) {
+    _latestNewOrder = order;
+    notifyListeners();
+  }
+
+  // Clear latest new order after it's been handled
+  void clearLatestNewOrder() {
+    _latestNewOrder = null;
+    notifyListeners();
+  }
 
   Future<String?> getSelectedDriverId() async {
     final prefs = await SharedPreferences.getInstance();

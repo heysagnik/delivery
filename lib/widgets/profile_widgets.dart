@@ -2,7 +2,7 @@ import 'package:delivery/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/driver_model.dart';
-import '../screens/all_delivery_screen.dart';
+import '../screens/all_done_delivery_screen.dart';
 
 class DriverProfileHeader extends StatelessWidget {
   final Driver driver;
