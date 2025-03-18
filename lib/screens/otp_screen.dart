@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -13,6 +14,7 @@ class OTPScreen extends StatefulWidget {
 class _OTPScreenState extends State<OTPScreen> {
   bool _isLoading = false;
   int resendSeconds = 30;
+  Timer? _resendTimer;
   final TextEditingController otpController = TextEditingController();
 
   @override
@@ -22,12 +24,18 @@ class _OTPScreenState extends State<OTPScreen> {
   }
 
   void _startResendTimer() {
+    _resendTimer?.cancel(); // Cancel any existing timer
     setState(() => resendSeconds = 30);
-    Future.delayed(const Duration(seconds: 1), () {
-      if(!mounted) return;
+
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
       if (resendSeconds > 0) {
         setState(() => resendSeconds--);
-        _startResendTimer();
+      } else {
+        timer.cancel();
       }
     });
   }
@@ -35,6 +43,7 @@ class _OTPScreenState extends State<OTPScreen> {
   @override
   void dispose() {
     otpController.dispose();
+    _resendTimer?.cancel(); // Cancel timer when disposing the widget
     super.dispose();
   }
 
@@ -64,7 +73,7 @@ class _OTPScreenState extends State<OTPScreen> {
                   const Text('OTP Verification',
                       textAlign: TextAlign.center,
                       style:
-                          TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                      TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   const Text('We have sent a verification code to your number',
                       textAlign: TextAlign.center,
