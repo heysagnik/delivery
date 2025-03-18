@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/order_model.dart';
 import '../providers/order_provider.dart';
 import '../widgets/availableDelivery_widgets.dart';
+import 'order_alert_screen.dart';
 
 class AvailableDeliveries extends StatefulWidget {
   const AvailableDeliveries({super.key});
@@ -20,6 +21,54 @@ class _AvailableDeliveriesState extends State<AvailableDeliveries> {
   void initState() {
     super.initState();
     _refreshOrders();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<OrderProvider>(context, listen: true)
+          .addListener(_checkForNewOrders);
+    });
+  }
+
+  @override
+  void dispose() {
+    // Remove the listener
+    Provider.of<OrderProvider>(context, listen: false)
+        .removeListener(_checkForNewOrders);
+    super.dispose();
+  }
+
+  void _checkForNewOrders() {
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    final latestOrder = orderProvider.latestNewOrder;
+
+    if (latestOrder != null) {
+      // Show fullscreen alert
+      _showOrderAlert(latestOrder);
+      // Clear latest order to prevent showing it again
+      orderProvider.clearLatestNewOrder();
+    }
+  }
+
+  void _showOrderAlert(Order order) {
+    var orderProvider = Provider.of<OrderProvider>(context, listen: false);
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) => OrderAlertScreen(
+          order: order,
+          onAccept: () async {
+            await orderProvider.assignOrder(order.id);
+            await orderProvider.pendingOrderByDriver();
+            Navigator.of(context).pop(); // Close the alert
+            Navigator.pushReplacementNamed(context, '/appScreen');
+          },
+          onDecline: () {
+            Navigator.of(context).pop(); // Just close the alert
+            _refreshOrders(); // Refresh to see other available orders
+          },
+          timeoutSeconds: 30,
+        ),
+      ),
+    );
   }
 
   Future<void> _refreshOrders() async {
