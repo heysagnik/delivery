@@ -18,7 +18,8 @@ class AppScreen extends StatefulWidget {
 }
 
 class _AppScreenState extends State<AppScreen> {
-  late bool isLive;
+  // Initialize isLive to false
+  bool isLive = false;
   int _selectedIndex = 0;
 
   final List<Widget> _pages = <Widget>[

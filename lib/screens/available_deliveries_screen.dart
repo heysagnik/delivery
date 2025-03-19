@@ -22,7 +22,7 @@ class _AvailableDeliveriesState extends State<AvailableDeliveries> {
     super.initState();
     _refreshOrders();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<OrderProvider>(context, listen: true)
+      Provider.of<OrderProvider>(context, listen: false)
           .addListener(_checkForNewOrders);
     });
   }
