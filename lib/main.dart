@@ -11,13 +11,12 @@ import 'package:delivery/screens/profile_screen.dart';
 import 'package:delivery/services/notification_services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final storage = FlutterSecureStorage();
-  await storage.deleteAll();
+  final navigatorKey = GlobalKey<NavigatorState>();
+  NotificationService.navigatorKey = navigatorKey;
   await Firebase.initializeApp();
   await NotificationService.instance.initialize();
   runApp(const MyApp());

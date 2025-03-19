@@ -29,12 +29,26 @@ class NotificationConstants {
   static const String orderAlertSound = 'order_alert';
   static final Int64List newOrderVibrationPattern =
       Int64List.fromList([0, 500, 200, 500, 200, 500]);
+
+  // Use this key to store pending order data in SharedPreferences
+  static const String pendingOrderKey = 'pending_order_data';
 }
 
 // Background message handler
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
+
+  // Process new order notifications
+  if (message.data['type'] == 'new_order' &&
+      message.data.containsKey('order_data')) {
+    // Store the order data in SharedPreferences so it can be retrieved when the app launches
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        NotificationConstants.pendingOrderKey, message.data['order_data']);
+  }
+
+  // Initialize notification service and show the notification
   await NotificationService.instance.initialize();
   if (message.data['type'] == 'new_order') {
     await NotificationService.instance.showNotification(message);
@@ -55,20 +69,27 @@ class NotificationService {
   static GlobalKey<NavigatorState>? navigatorKey;
 
   AudioPlayer? _audioPlayer;
+  Timer? _backgroundAudioTimer;
 
   /// Initializes the notification service
   Future<void> initialize({BuildContext? context}) async {
     try {
       debugPrint("Initializing NotificationService...");
-      await Firebase.initializeApp();
-      await _fetchAndSaveFCMToken();
-      FirebaseMessaging.onBackgroundMessage(
-          _firebaseMessagingBackgroundHandler);
-      await requestPermission();
-      await _initLocalNotifications();
-      await setupMessageHandlers();
+      if (!_isInitialized) {
+        await Firebase.initializeApp();
+        await _fetchAndSaveFCMToken();
+        FirebaseMessaging.onBackgroundMessage(
+            _firebaseMessagingBackgroundHandler);
+        await requestPermission();
+        await _initLocalNotifications();
+        await setupMessageHandlers();
+        _audioPlayer = AudioPlayer();
+        _isInitialized = true;
+      }
+
+      // Check for pending order notifications on app startup
       await _checkNotificationLaunch();
-      _audioPlayer = AudioPlayer();
+      await _checkPendingOrders();
     } catch (e, stackTrace) {
       debugPrint('NotificationService initialization error: $e\n$stackTrace');
     }
@@ -134,7 +155,6 @@ class NotificationService {
       onDidReceiveNotificationResponse: handleNotificationAction,
     );
 
-    _isInitialized = true;
     debugPrint("Local notifications initialized.");
   }
 
@@ -207,16 +227,19 @@ class NotificationService {
             autoCancel: false,
             ongoing: isNewOrder,
             sound: RawResourceAndroidNotificationSound(
-                NotificationConstants.orderAlertSound), // Use custom sound
+                NotificationConstants.orderAlertSound),
+            // Use custom sound
+            playSound: true,
             vibrationPattern: NotificationConstants.newOrderVibrationPattern,
-            category:
-                AndroidNotificationCategory.alarm, // Set category to alarm
+            category: AndroidNotificationCategory.alarm,
+            // Set category to alarm
             fullScreenIntent: true, // Enable fullScreenIntent
           ),
           iOS: const DarwinNotificationDetails(
             presentAlert: true,
             presentBadge: true,
             presentSound: true,
+            sound: NotificationConstants.orderAlertSound,
             interruptionLevel: InterruptionLevel.critical,
           ),
         ),
@@ -260,6 +283,12 @@ class NotificationService {
       if (message.data.containsKey('order_data')) {
         final orderData = json.decode(message.data['order_data']);
         final Order newOrder = Order.fromJson(orderData);
+
+        // Store the order data in SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+            NotificationConstants.pendingOrderKey, message.data['order_data']);
+
         if (navigatorKey?.currentContext != null) {
           _showOrderAlert(navigatorKey!.currentContext!, newOrder);
         } else {
@@ -271,6 +300,31 @@ class NotificationService {
     } catch (e) {
       debugPrint('Error handling new order notification: $e');
       showNotification(message);
+    }
+  }
+
+  /// Check for pending orders stored in SharedPreferences
+  Future<void> _checkPendingOrders() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final pendingOrderData =
+          prefs.getString(NotificationConstants.pendingOrderKey);
+
+      if (pendingOrderData != null &&
+          pendingOrderData.isNotEmpty &&
+          navigatorKey?.currentContext != null) {
+        final orderData = json.decode(pendingOrderData);
+        final Order newOrder = Order.fromJson(orderData);
+
+        // Wait for the app to be fully initialized before showing the alert
+        await Future.delayed(const Duration(milliseconds: 500));
+        _showOrderAlert(navigatorKey!.currentContext!, newOrder);
+
+        // Clear the pending order after showing the alert
+        await prefs.remove(NotificationConstants.pendingOrderKey);
+      }
+    } catch (e) {
+      debugPrint('Error checking pending orders: $e');
     }
   }
 
@@ -311,6 +365,13 @@ class NotificationService {
       if (_audioPlayer != null) {
         await _audioPlayer!.play(AssetSource('assets/sound/alarm2.mp3'));
         _audioPlayer!.setReleaseMode(ReleaseMode.loop);
+
+        // Set up a timer to play the sound again if it stops
+        _backgroundAudioTimer?.cancel();
+        _backgroundAudioTimer =
+            Timer.periodic(const Duration(seconds: 5), (timer) {
+          _audioPlayer!.play(AssetSource('assets/sound/alarm2.mp3'));
+        });
       }
     } catch (e) {
       debugPrint('Error playing alert sound: $e');
@@ -321,6 +382,8 @@ class NotificationService {
   void _stopAlertSound() {
     try {
       _audioPlayer?.stop();
+      _backgroundAudioTimer?.cancel();
+      _backgroundAudioTimer = null;
     } catch (e) {
       debugPrint('Error stopping alert sound: $e');
     }

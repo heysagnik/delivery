@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -20,7 +19,6 @@ class DriverProvider extends ChangeNotifier {
   Future<String?> getSelectedDriverId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('id');
-
   }
 
   // Future<void> _loadOnlineStatus() async {
@@ -42,15 +40,12 @@ class DriverProvider extends ChangeNotifier {
         final jsonData = jsonDecode(response.body);
         print(jsonData);
 
-        if(jsonData['success'] ==true)
-          {
-            return Driver.fromJson(jsonData['data']);
-          }
-        else
-          {
-            throw Exception('Failed to load driver details');
-          }
-
+        if (jsonData['success'] == true) {
+          return Driver.fromJson(jsonData['data']);
+        }
+        else {
+          throw Exception('Failed to load driver details');
+        }
       } else {
         throw Exception(
             'Failed to load driver details: ${response.statusCode}');
