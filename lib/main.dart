@@ -15,15 +15,37 @@ import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   final navigatorKey = GlobalKey<NavigatorState>();
   NotificationService.navigatorKey = navigatorKey;
-  await Firebase.initializeApp();
-  await NotificationService.instance.initialize();
-  runApp(const MyApp());
+  // await NotificationService.instance.initialize();
+  runApp(
+    MyApp(navigatorKey: navigatorKey),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  final GlobalKey<NavigatorState> navigatorKey;
+
+  const MyApp({super.key, required this.navigatorKey});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // Initialize notification service
+    await NotificationService.instance.initialize();
+    // Check for notifications that might have launched the app
+    await NotificationService.instance.checkForNotifications();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +57,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: MaterialApp(
+        navigatorKey: widget.navigatorKey,
         debugShowCheckedModeBanner: false,
         title: 'Driver-DayKart',
         theme: ThemeData(
@@ -75,7 +98,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _checkLoginStatus() async {
     _authProvider = Provider.of<AuthProvider>(context, listen: false);
-    bool isLoggedIn = await _authProvider.checkIfSignedIn();
+    await _authProvider.checkIfSignedIn();
     if (mounted) {
       _authProvider.initializeAuthState();
       setState(() => _isChecking = false);

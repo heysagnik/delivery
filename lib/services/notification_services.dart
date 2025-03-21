@@ -16,22 +16,20 @@ import '../screens/order_alert_screen.dart';
 // Channel and notification-related constants for scalability
 class NotificationConstants {
   static const String highImportanceChannelId = 'high_importance_channel';
-  static const String highImportanceChannelName =
-      'High Importance Notifications';
-  static const String highImportanceChannelDescription =
-      'Used for important notifications.';
+  static const String highImportanceChannelName = 'High Importance Notifications';
+  static const String highImportanceChannelDescription = 'Used for important notifications.';
 
   static const String newOrderChannelId = 'new_order_channel';
   static const String newOrderChannelName = 'New Order Alerts';
-  static const String newOrderChannelDescription =
-      'Used for new order notifications.';
+  static const String newOrderChannelDescription = 'Used for new order notifications.';
 
   static const String orderAlertSound = 'order_alert';
-  static final Int64List newOrderVibrationPattern =
-      Int64List.fromList([0, 500, 200, 500, 200, 500]);
+  static final Int64List newOrderVibrationPattern = Int64List.fromList([0, 500, 200, 500, 200, 500]);
 
   // Use this key to store pending order data in SharedPreferences
   static const String pendingOrderKey = 'pending_order_data';
+  static const String pendingOrderTimeKey = 'pending_order_time';
+  static const int orderExpirationTimeMinutes = 5; // Orders expire after 5 minutes
 }
 
 // Background message handler
@@ -40,18 +38,17 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 
   // Process new order notifications
-  if (message.data['type'] == 'new_order' &&
-      message.data.containsKey('order_data')) {
+  if (message.data['type'] == 'new_order' && message.data.containsKey('order_data')) {
     // Store the order data in SharedPreferences so it can be retrieved when the app launches
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        NotificationConstants.pendingOrderKey, message.data['order_data']);
-  }
+    await prefs.setString(NotificationConstants.pendingOrderKey, message.data['order_data']);
+    await prefs.setInt(NotificationConstants.pendingOrderTimeKey, DateTime.now().millisecondsSinceEpoch);
 
-  // Initialize notification service and show the notification
-  await NotificationService.instance.initialize();
-  if (message.data['type'] == 'new_order') {
-    await NotificationService.instance.showNotification(message);
+    // Initialize notification service to handle notifications
+    await NotificationService.instance.initialize();
+
+    // Show a silent notification that will be used to trigger the full-screen intent
+    await NotificationService.instance.showSilentNotification();
   }
 }
 
@@ -61,9 +58,9 @@ class NotificationService {
   static final NotificationService instance = NotificationService._();
 
   final FirebaseMessaging messaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications =
-      FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
+  bool _alertCurrentlyShowing = false;
 
   // Global navigator key to access context from anywhere
   static GlobalKey<NavigatorState>? navigatorKey;
@@ -78,8 +75,7 @@ class NotificationService {
       if (!_isInitialized) {
         await Firebase.initializeApp();
         await _fetchAndSaveFCMToken();
-        FirebaseMessaging.onBackgroundMessage(
-            _firebaseMessagingBackgroundHandler);
+        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
         await requestPermission();
         await _initLocalNotifications();
         await setupMessageHandlers();
@@ -87,9 +83,12 @@ class NotificationService {
         _isInitialized = true;
       }
 
-      // Check for pending order notifications on app startup
-      await _checkNotificationLaunch();
-      await _checkPendingOrders();
+      // Check for pending order notifications on app startup with a slight delay
+      // to ensure context is available
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _checkPendingOrders();
+      });
+
     } catch (e, stackTrace) {
       debugPrint('NotificationService initialization error: $e\n$stackTrace');
     }
@@ -109,7 +108,7 @@ class NotificationService {
     }
   }
 
-  /// Requests notification permissions
+  /// Requests notification permissions with high priority
   Future<void> requestPermission() async {
     try {
       final settings = await messaging.requestPermission(
@@ -117,14 +116,14 @@ class NotificationService {
         badge: true,
         sound: true,
         carPlay: true,
-        criticalAlert: true,
+        criticalAlert: true, // Important for sound even in Do Not Disturb mode
         provisional: false,
         announcement: true,
       );
+
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         debugPrint('User granted full notification permissions');
-      } else if (settings.authorizationStatus ==
-          AuthorizationStatus.provisional) {
+      } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
         debugPrint('User granted provisional notification permissions');
       } else {
         debugPrint('User declined notification permissions');
@@ -136,8 +135,6 @@ class NotificationService {
 
   /// Initializes local notifications with extracted configuration
   Future<void> _initLocalNotifications() async {
-    if (_isInitialized) return;
-
     // Create the Android channels
     await _createAndroidNotificationChannels();
 
@@ -152,7 +149,9 @@ class NotificationService {
 
     await _localNotifications.initialize(
       initSettings,
-      onDidReceiveNotificationResponse: handleNotificationAction,
+      onDidReceiveNotificationResponse: _handleNotificationResponse,
+      // Important: This handles when notifications launch the app
+      onDidReceiveBackgroundNotificationResponse: _handleBackgroundNotificationResponse,
     );
 
     debugPrint("Local notifications initialized.");
@@ -173,106 +172,64 @@ class NotificationService {
       description: NotificationConstants.newOrderChannelDescription,
       importance: Importance.max,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound(
-          NotificationConstants.orderAlertSound),
+      sound: RawResourceAndroidNotificationSound(NotificationConstants.orderAlertSound),
       enableVibration: true,
       vibrationPattern: NotificationConstants.newOrderVibrationPattern,
     );
 
-    final androidImpl =
-        _localNotifications.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final androidImpl = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     if (androidImpl != null) {
       await androidImpl.createNotificationChannel(channel);
       await androidImpl.createNotificationChannel(orderChannel);
     }
   }
 
-  /// Displays a local notification with structured configuration
-  Future<void> showNotification(RemoteMessage message) async {
-    final notification = message.notification;
-    final isNewOrder = message.data['type'] == 'new_order';
-
-    final title = notification?.title ??
-        (isNewOrder ? 'New Order Available!' : 'New Notification');
-    final body =
-        notification?.body ?? (isNewOrder ? 'Tap to view order details' : '');
-
-    // Use a dedicated variable for the notification ID
-    final notificationId = isNewOrder
-        ? 0
-        : (notification?.hashCode ??
-            DateTime.now().millisecondsSinceEpoch.hashCode);
-
+  /// Display a silent notification that triggers the full-screen intent
+  Future<void> showSilentNotification() async {
     try {
+      const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        NotificationConstants.newOrderChannelId,
+        NotificationConstants.newOrderChannelName,
+        channelDescription: NotificationConstants.newOrderChannelDescription,
+        importance: Importance.max,
+        priority: Priority.max,
+        fullScreenIntent: true,
+        category: AndroidNotificationCategory.call,
+        visibility: NotificationVisibility.public,
+        playSound: false, // The sound will be handled separately by the app
+        autoCancel: false,
+        ongoing: true,
+      );
+
+      const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+
       await _localNotifications.show(
-        notificationId,
-        title,
-        body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            isNewOrder
-                ? NotificationConstants.newOrderChannelId
-                : NotificationConstants.highImportanceChannelId,
-            isNewOrder
-                ? NotificationConstants.newOrderChannelName
-                : NotificationConstants.highImportanceChannelName,
-            channelDescription: isNewOrder
-                ? NotificationConstants.newOrderChannelDescription
-                : NotificationConstants.highImportanceChannelDescription,
-            importance: Importance.max,
-            priority: Priority.max,
-            icon: '@mipmap/ic_launcher',
-            visibility: NotificationVisibility.public,
-            autoCancel: false,
-            ongoing: isNewOrder,
-            sound: RawResourceAndroidNotificationSound(
-                NotificationConstants.orderAlertSound),
-            // Use custom sound
-            playSound: true,
-            vibrationPattern: NotificationConstants.newOrderVibrationPattern,
-            category: AndroidNotificationCategory.alarm,
-            // Set category to alarm
-            fullScreenIntent: true, // Enable fullScreenIntent
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-            sound: NotificationConstants.orderAlertSound,
-            interruptionLevel: InterruptionLevel.critical,
-          ),
-        ),
-        payload: isNewOrder
-            ? message.data['order_data'] ?? ''
-            : message.data['driverId']?.toString() ?? '',
+        0, // Using a fixed ID for order notifications
+        'New Order Available',
+        'Tap to view details',
+        platformChannelSpecifics,
+        payload: 'order_notification',
       );
     } catch (e) {
-      debugPrint('Error displaying notification: $e');
+      debugPrint('Error showing silent notification: $e');
     }
   }
 
   /// Sets up Firebase message handlers for foreground and opened notifications
   Future<void> setupMessageHandlers() async {
+    // Handle foreground messages
     FirebaseMessaging.onMessage.listen((message) {
       debugPrint("Foreground notification: ${message.notification?.title}");
       if (message.data['type'] == 'new_order') {
         _handleNewOrderNotification(message);
-      } else {
-        showNotification(message);
       }
     });
 
+    // Handle when app is opened from a background notification
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       debugPrint("Notification clicked, app opened.");
       if (message.data['type'] == 'new_order') {
         _handleNewOrderNotification(message);
-      } else {
-        handleNotificationAction(NotificationResponse(
-          payload: message.data['driverId']?.toString() ?? '',
-          notificationResponseType:
-              NotificationResponseType.selectedNotificationAction,
-        ));
       }
     });
   }
@@ -281,47 +238,55 @@ class NotificationService {
   void _handleNewOrderNotification(RemoteMessage message) async {
     try {
       if (message.data.containsKey('order_data')) {
+        // Store order data in shared preferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(NotificationConstants.pendingOrderKey, message.data['order_data']);
+        await prefs.setInt(NotificationConstants.pendingOrderTimeKey, DateTime.now().millisecondsSinceEpoch);
+
         final orderData = json.decode(message.data['order_data']);
         final Order newOrder = Order.fromJson(orderData);
 
-        // Store the order data in SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(
-            NotificationConstants.pendingOrderKey, message.data['order_data']);
-
-        if (navigatorKey?.currentContext != null) {
+        // Show the alert screen directly if we have context
+        if (navigatorKey?.currentContext != null && !_alertCurrentlyShowing) {
           _showOrderAlert(navigatorKey!.currentContext!, newOrder);
         } else {
-          showNotification(message);
+          // Otherwise show a silent notification that will trigger the alert
+          showSilentNotification();
         }
-      } else {
-        showNotification(message);
       }
     } catch (e) {
       debugPrint('Error handling new order notification: $e');
-      showNotification(message);
     }
   }
 
   /// Check for pending orders stored in SharedPreferences
   Future<void> _checkPendingOrders() async {
     try {
+      if (_alertCurrentlyShowing) return;
+
       final prefs = await SharedPreferences.getInstance();
-      final pendingOrderData =
-          prefs.getString(NotificationConstants.pendingOrderKey);
+      final pendingOrderData = prefs.getString(NotificationConstants.pendingOrderKey);
+      final orderTime = prefs.getInt(NotificationConstants.pendingOrderTimeKey) ?? 0;
 
-      if (pendingOrderData != null &&
-          pendingOrderData.isNotEmpty &&
-          navigatorKey?.currentContext != null) {
-        final orderData = json.decode(pendingOrderData);
-        final Order newOrder = Order.fromJson(orderData);
+      // Check if order is still valid (not expired)
+      final currentTime = DateTime.now().millisecondsSinceEpoch;
+      final orderAge = (currentTime - orderTime) ~/ (1000 * 60); // Convert to minutes
 
-        // Wait for the app to be fully initialized before showing the alert
-        await Future.delayed(const Duration(milliseconds: 500));
-        _showOrderAlert(navigatorKey!.currentContext!, newOrder);
+      if (pendingOrderData != null && pendingOrderData.isNotEmpty && orderAge < NotificationConstants.orderExpirationTimeMinutes) {
+        if (navigatorKey?.currentContext != null) {
+          final orderData = json.decode(pendingOrderData);
+          final Order newOrder = Order.fromJson(orderData);
 
-        // Clear the pending order after showing the alert
+          _showOrderAlert(navigatorKey!.currentContext!, newOrder);
+
+          // Clear the pending order after showing the alert
+          await prefs.remove(NotificationConstants.pendingOrderKey);
+          await prefs.remove(NotificationConstants.pendingOrderTimeKey);
+        }
+      } else if (pendingOrderData != null) {
+        // Clean up expired orders
         await prefs.remove(NotificationConstants.pendingOrderKey);
+        await prefs.remove(NotificationConstants.pendingOrderTimeKey);
       }
     } catch (e) {
       debugPrint('Error checking pending orders: $e');
@@ -330,8 +295,14 @@ class NotificationService {
 
   /// Displays the fullscreen order alert dialog
   void _showOrderAlert(BuildContext context, Order order) {
+    if (_alertCurrentlyShowing) return;
+    _alertCurrentlyShowing = true;
+
     _playAlertSound();
     HapticFeedback.heavyImpact();
+
+    // Cancel any existing notification
+    _localNotifications.cancel(0);
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -340,17 +311,21 @@ class NotificationService {
           order: order,
           onAccept: () async {
             _stopAlertSound();
-            _localNotifications.cancel(0); // Cancel notification
-            final orderProvider =
-                Provider.of<OrderProvider>(context, listen: false);
+            _localNotifications.cancel(0);
+            _alertCurrentlyShowing = false;
+
+            final orderProvider = Provider.of<OrderProvider>(context, listen: false);
             await orderProvider.assignOrder(order.id);
             await orderProvider.pendingOrderByDriver();
+
             Navigator.of(context).pop();
             Navigator.pushReplacementNamed(context, '/availableDelivery');
           },
           onDecline: () {
             _stopAlertSound();
-            _localNotifications.cancel(0); // Cancel notification
+            _localNotifications.cancel(0);
+            _alertCurrentlyShowing = false;
+
             Navigator.of(context).pop();
           },
           timeoutSeconds: 30,
@@ -363,13 +338,14 @@ class NotificationService {
   void _playAlertSound() async {
     try {
       if (_audioPlayer != null) {
+        // Load and play the audio
         await _audioPlayer!.play(AssetSource('assets/sound/alarm2.mp3'));
         _audioPlayer!.setReleaseMode(ReleaseMode.loop);
 
-        // Set up a timer to play the sound again if it stops
+        // Ensure sound continues playing
         _backgroundAudioTimer?.cancel();
-        _backgroundAudioTimer =
-            Timer.periodic(const Duration(seconds: 5), (timer) {
+        _backgroundAudioTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+          // Check if the audio is still playing
           _audioPlayer!.play(AssetSource('assets/sound/alarm2.mp3'));
         });
       }
@@ -389,44 +365,29 @@ class NotificationService {
     }
   }
 
-  /// Checks for notification launch details when the app starts
-  Future<void> _checkNotificationLaunch() async {
+  /// Static method to handle notification responses in the background
+  @pragma('vm:entry-point')
+  static void _handleBackgroundNotificationResponse(NotificationResponse response) async {
+    await NotificationService.instance.initialize();
+    await NotificationService.instance._checkPendingOrders();
+  }
+
+  /// Handle notification response when app is open
+  void _handleNotificationResponse(NotificationResponse response) async {
+    debugPrint("Notification response received: ${response.payload}");
+    await _checkPendingOrders();
+  }
+
+  /// Call this when your app starts to ensure notifications are handled
+  Future<void> checkForNotifications() async {
+    // Check if app was launched from a notification
     final details = await _localNotifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.getNotificationAppLaunchDetails();
 
     if (details?.didNotificationLaunchApp ?? false) {
-      debugPrint("App launched via notification.");
-      final payload = details?.notificationResponse?.payload;
-      if (payload != null && payload.isNotEmpty) {
-        try {
-          final orderData = json.decode(payload);
-          if (orderData != null && navigatorKey?.currentContext != null) {
-            await Future.delayed(const Duration(milliseconds: 500));
-            final Order newOrder = Order.fromJson(orderData);
-            _showOrderAlert(navigatorKey!.currentContext!, newOrder);
-          }
-        } catch (e) {
-          debugPrint('Error processing launch payload: $e');
-        }
-      }
-    }
-  }
-
-  /// Handles user notification actions
-  void handleNotificationAction(NotificationResponse response) {
-    debugPrint("Notification action payload: ${response.payload}");
-    if (response.payload != null && response.payload!.isNotEmpty) {
-      try {
-        final orderData = json.decode(response.payload!);
-        if (orderData != null && navigatorKey?.currentContext != null) {
-          final Order newOrder = Order.fromJson(orderData);
-          _showOrderAlert(navigatorKey!.currentContext!, newOrder);
-        }
-      } catch (e) {
-        debugPrint('Error in notification action: $e');
-      }
+      debugPrint("App was launched from a notification");
+      await _checkPendingOrders();
     }
   }
 }
