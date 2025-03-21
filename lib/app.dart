@@ -132,8 +132,8 @@ class _AppScreenState extends State<AppScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(_selectedIndex == 2
-                ? PhosphorIconsBold.list
-                : PhosphorIconsRegular.list),
+                ? PhosphorIconsBold.userCircle
+                : PhosphorIconsRegular.userCircle),
             label: 'Profile',
           ),
         ],
