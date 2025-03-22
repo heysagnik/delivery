@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'package:delivery/providers/order_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:provider/provider.dart';
 import '../models/order_model.dart';
 
 class OrderAlertScreen extends StatefulWidget {
@@ -31,6 +33,8 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
   // Initialize controllers without 'late'
   AnimationController? _animationController;
   Animation<double>? _animation;
+
+  Order? _orderDetails;
 
   @override
   void initState() {
@@ -69,9 +73,26 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
     // Start timer
     _startTimer();
 
+    // Fetch updated order details
+    _fetchOrderDetails();
+
     // Ensure the widget rebuilds with the animations
     if (mounted) {
       setState(() {});
+    }
+  }
+
+  Future<void> _fetchOrderDetails() async {
+    try {
+      final order = await Provider.of<OrderProvider>(context, listen: false)
+          .fetchOrderDetails(widget.order.id);
+      if (mounted) {
+        setState(() {
+          _orderDetails = order;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching order details: $e');
     }
   }
 
@@ -176,7 +197,9 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
 
   @override
   Widget build(BuildContext context) {
-    final order = widget.order;
+    // Use _orderDetails if available, otherwise fallback to widget.order
+    final order = _orderDetails ?? widget.order;
+
     final Color acceptColor = const Color(0xFF25B462);
     final Color pendingColor = const Color(0xFFE74C3C);
     final double progressValue = _remainingSeconds / widget.timeoutSeconds;

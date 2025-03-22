@@ -7,6 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/driver_model.dart';
 
 class DriverProvider extends ChangeNotifier {
+  // final String baseUrl = 'https://taskmaster.outlfy.com';
+  final String baseUrl = 'http://localhost:3001';
+  final String driverBaseUrl = 'https://daykart.com';
   bool _isLive = false;
 
   bool get isLive => _isLive;
@@ -30,7 +33,7 @@ class DriverProvider extends ChangeNotifier {
   Future<Driver> fetchDriverDetails() async {
     try {
       final token = await getToken();
-      final url = 'https://daykart.com/api/driver/profile';
+      final url = '$driverBaseUrl/api/driver/profile';
       final response = await http.get(headers: {
         "Content-Type": "application/json",
         "Authorization": "$token" ?? '',
@@ -42,8 +45,7 @@ class DriverProvider extends ChangeNotifier {
 
         if (jsonData['success'] == true) {
           return Driver.fromJson(jsonData['data']);
-        }
-        else {
+        } else {
           throw Exception('Failed to load driver details');
         }
       } else {
@@ -61,7 +63,7 @@ class DriverProvider extends ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLive', isOnline); // Save state locally
     final token = await getToken();
-    const apiUrl = "https://daykart.com/api/driver/islivetoggle";
+    final apiUrl = "$driverBaseUrl/api/driver/islivetoggle";
     try {
       final response = await http.put(
         Uri.parse(apiUrl),
@@ -88,7 +90,7 @@ class DriverProvider extends ChangeNotifier {
 
   Future<List<Map<String, dynamic>>> fetchAllDoneDeliveries() async {
     try {
-      final url = 'http://taskmaster.outlfy.com/api/delivered-deliveries';
+      final url = '$baseUrl/api/delivered-deliveries';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
