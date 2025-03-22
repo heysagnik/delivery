@@ -54,7 +54,7 @@ class _OrderAlertListScreenState extends State<OrderAlertListScreen>
 
   void _playAlertSound() async {
     try {
-      await _audioPlayer.play(AssetSource('sounds/new_order_alert.mp3'));
+      await _audioPlayer.play(AssetSource('sound/alarm2.mp3'));
       _audioPlayer.setReleaseMode(ReleaseMode.loop);
     } catch (e) {
       debugPrint('Error playing sound: $e');

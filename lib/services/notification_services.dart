@@ -16,20 +16,25 @@ import '../screens/order_alert_screen.dart';
 // Channel and notification-related constants for scalability
 class NotificationConstants {
   static const String highImportanceChannelId = 'high_importance_channel';
-  static const String highImportanceChannelName = 'High Importance Notifications';
-  static const String highImportanceChannelDescription = 'Used for important notifications.';
+  static const String highImportanceChannelName =
+      'High Importance Notifications';
+  static const String highImportanceChannelDescription =
+      'Used for important notifications.';
 
   static const String newOrderChannelId = 'new_order_channel';
   static const String newOrderChannelName = 'New Order Alerts';
-  static const String newOrderChannelDescription = 'Used for new order notifications.';
+  static const String newOrderChannelDescription =
+      'Used for new order notifications.';
 
   static const String orderAlertSound = 'order_alert';
-  static final Int64List newOrderVibrationPattern = Int64List.fromList([0, 500, 200, 500, 200, 500]);
+  static final Int64List newOrderVibrationPattern =
+      Int64List.fromList([0, 500, 200, 500, 200, 500]);
 
   // Use this key to store pending order data in SharedPreferences
   static const String pendingOrderKey = 'pending_order_data';
   static const String pendingOrderTimeKey = 'pending_order_time';
-  static const int orderExpirationTimeMinutes = 5; // Orders expire after 5 minutes
+  static const int orderExpirationTimeMinutes =
+      5; // Orders expire after 5 minutes
 }
 
 // Background message handler
@@ -38,11 +43,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 
   // Process new order notifications
-  if (message.data['type'] == 'new_order' && message.data.containsKey('order_data')) {
+  if (message.data['type'] == 'new_order' &&
+      message.data.containsKey('order_data')) {
     // Store the order data in SharedPreferences so it can be retrieved when the app launches
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(NotificationConstants.pendingOrderKey, message.data['order_data']);
-    await prefs.setInt(NotificationConstants.pendingOrderTimeKey, DateTime.now().millisecondsSinceEpoch);
+    await prefs.setString(
+        NotificationConstants.pendingOrderKey, message.data['order_data']);
+    await prefs.setInt(NotificationConstants.pendingOrderTimeKey,
+        DateTime.now().millisecondsSinceEpoch);
 
     // Initialize notification service to handle notifications
     await NotificationService.instance.initialize();
@@ -58,7 +66,8 @@ class NotificationService {
   static final NotificationService instance = NotificationService._();
 
   final FirebaseMessaging messaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
   bool _alertCurrentlyShowing = false;
 
@@ -75,7 +84,8 @@ class NotificationService {
       if (!_isInitialized) {
         await Firebase.initializeApp();
         await _fetchAndSaveFCMToken();
-        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+        FirebaseMessaging.onBackgroundMessage(
+            _firebaseMessagingBackgroundHandler);
         await requestPermission();
         await _initLocalNotifications();
         await setupMessageHandlers();
@@ -88,7 +98,6 @@ class NotificationService {
       Future.delayed(const Duration(milliseconds: 500), () {
         _checkPendingOrders();
       });
-
     } catch (e, stackTrace) {
       debugPrint('NotificationService initialization error: $e\n$stackTrace');
     }
@@ -123,7 +132,8 @@ class NotificationService {
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         debugPrint('User granted full notification permissions');
-      } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+      } else if (settings.authorizationStatus ==
+          AuthorizationStatus.provisional) {
         debugPrint('User granted provisional notification permissions');
       } else {
         debugPrint('User declined notification permissions');
@@ -151,7 +161,8 @@ class NotificationService {
       initSettings,
       onDidReceiveNotificationResponse: _handleNotificationResponse,
       // Important: This handles when notifications launch the app
-      onDidReceiveBackgroundNotificationResponse: _handleBackgroundNotificationResponse,
+      onDidReceiveBackgroundNotificationResponse:
+          _handleBackgroundNotificationResponse,
     );
 
     debugPrint("Local notifications initialized.");
@@ -172,12 +183,15 @@ class NotificationService {
       description: NotificationConstants.newOrderChannelDescription,
       importance: Importance.max,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound(NotificationConstants.orderAlertSound),
+      sound: RawResourceAndroidNotificationSound(
+          NotificationConstants.orderAlertSound),
       enableVibration: true,
       vibrationPattern: NotificationConstants.newOrderVibrationPattern,
     );
 
-    final androidImpl = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    final androidImpl =
+        _localNotifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
     if (androidImpl != null) {
       await androidImpl.createNotificationChannel(channel);
       await androidImpl.createNotificationChannel(orderChannel);
@@ -187,7 +201,8 @@ class NotificationService {
   /// Display a silent notification that triggers the full-screen intent
   Future<void> showSilentNotification() async {
     try {
-      const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+          AndroidNotificationDetails(
         NotificationConstants.newOrderChannelId,
         NotificationConstants.newOrderChannelName,
         channelDescription: NotificationConstants.newOrderChannelDescription,
@@ -201,7 +216,8 @@ class NotificationService {
         ongoing: true,
       );
 
-      const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+      const NotificationDetails platformChannelSpecifics =
+          NotificationDetails(android: androidPlatformChannelSpecifics);
 
       await _localNotifications.show(
         0, // Using a fixed ID for order notifications
@@ -240,8 +256,10 @@ class NotificationService {
       if (message.data.containsKey('order_data')) {
         // Store order data in shared preferences
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(NotificationConstants.pendingOrderKey, message.data['order_data']);
-        await prefs.setInt(NotificationConstants.pendingOrderTimeKey, DateTime.now().millisecondsSinceEpoch);
+        await prefs.setString(
+            NotificationConstants.pendingOrderKey, message.data['order_data']);
+        await prefs.setInt(NotificationConstants.pendingOrderTimeKey,
+            DateTime.now().millisecondsSinceEpoch);
 
         final orderData = json.decode(message.data['order_data']);
         final Order newOrder = Order.fromJson(orderData);
@@ -265,14 +283,19 @@ class NotificationService {
       if (_alertCurrentlyShowing) return;
 
       final prefs = await SharedPreferences.getInstance();
-      final pendingOrderData = prefs.getString(NotificationConstants.pendingOrderKey);
-      final orderTime = prefs.getInt(NotificationConstants.pendingOrderTimeKey) ?? 0;
+      final pendingOrderData =
+          prefs.getString(NotificationConstants.pendingOrderKey);
+      final orderTime =
+          prefs.getInt(NotificationConstants.pendingOrderTimeKey) ?? 0;
 
       // Check if order is still valid (not expired)
       final currentTime = DateTime.now().millisecondsSinceEpoch;
-      final orderAge = (currentTime - orderTime) ~/ (1000 * 60); // Convert to minutes
+      final orderAge =
+          (currentTime - orderTime) ~/ (1000 * 60); // Convert to minutes
 
-      if (pendingOrderData != null && pendingOrderData.isNotEmpty && orderAge < NotificationConstants.orderExpirationTimeMinutes) {
+      if (pendingOrderData != null &&
+          pendingOrderData.isNotEmpty &&
+          orderAge < NotificationConstants.orderExpirationTimeMinutes) {
         if (navigatorKey?.currentContext != null) {
           final orderData = json.decode(pendingOrderData);
           final Order newOrder = Order.fromJson(orderData);
@@ -314,7 +337,8 @@ class NotificationService {
             _localNotifications.cancel(0);
             _alertCurrentlyShowing = false;
 
-            final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+            final orderProvider =
+                Provider.of<OrderProvider>(context, listen: false);
             await orderProvider.assignOrder(order.id);
             await orderProvider.pendingOrderByDriver();
 
@@ -344,7 +368,8 @@ class NotificationService {
 
         // Ensure sound continues playing
         _backgroundAudioTimer?.cancel();
-        _backgroundAudioTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+        _backgroundAudioTimer =
+            Timer.periodic(const Duration(seconds: 3), (timer) {
           // Check if the audio is still playing
           _audioPlayer!.play(AssetSource('assets/sound/alarm2.mp3'));
         });
@@ -367,7 +392,8 @@ class NotificationService {
 
   /// Static method to handle notification responses in the background
   @pragma('vm:entry-point')
-  static void _handleBackgroundNotificationResponse(NotificationResponse response) async {
+  static void _handleBackgroundNotificationResponse(
+      NotificationResponse response) async {
     await NotificationService.instance.initialize();
     await NotificationService.instance._checkPendingOrders();
   }
@@ -382,7 +408,8 @@ class NotificationService {
   Future<void> checkForNotifications() async {
     // Check if app was launched from a notification
     final details = await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
         ?.getNotificationAppLaunchDetails();
 
     if (details?.didNotificationLaunchApp ?? false) {

@@ -8,6 +8,8 @@ import '../models/order_model.dart';
 import '../models/order_model2.dart';
 
 class OrderProvider extends ChangeNotifier {
+  final String baseUrl = 'https://taskmaster.outlfy.com';
+  // final String baseUrl = 'http://172.25.225.178:3001';
   final List<Order2> _pendingDeliveries = [];
   List<Order2> get pendingDeliveries => _pendingDeliveries;
   Order? _latestNewOrder;
@@ -34,7 +36,7 @@ class OrderProvider extends ChangeNotifier {
 
   Future<List<Order>> getAvailableDeliveries() async {
     try {
-      final url = 'https://taskmaster.outlfy.com/api/pending-deliveries';
+      final url = '$baseUrl/api/pending-deliveries';
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = jsonDecode(response.body);
@@ -50,7 +52,7 @@ class OrderProvider extends ChangeNotifier {
 
   Future<void> assignOrder(String orderId) async {
     try {
-      final url = 'https://taskmaster.outlfy.com/api/assign-driver';
+      final url = '$baseUrl/api/assign-driver';
       var selectedDriver = await getSelectedDriverId();
       final body = jsonEncode({
         "deliveryId": orderId,
@@ -77,8 +79,7 @@ class OrderProvider extends ChangeNotifier {
   Future<List<Order2>> pendingOrderByDriver() async {
     var selectedDriver = await getSelectedDriverId();
     try {
-      final url =
-          'https://taskmaster.outlfy.com/api/pending-deliveries/$selectedDriver';
+      final url = '$baseUrl/api/pending-deliveries/$selectedDriver';
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         print('Pending orders fetched successfully');
@@ -96,7 +97,7 @@ class OrderProvider extends ChangeNotifier {
 
   Future<Order> fetchOrderDetails(String orderId) async {
     try {
-      final url = 'https://taskmaster.outlfy.com/api/delivery-details/$orderId';
+      final url = '$baseUrl/api/delivery-details/$orderId';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
@@ -113,14 +114,15 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> changeOrderStatus(int orderPK, String status, {String? paymentMethod, String? reason}) async {
+  Future<void> changeOrderStatus(int orderPK, String status,
+      {String? paymentMethod, String? reason}) async {
     try {
-      final url = 'https://taskmaster.outlfy.com/api/update-status';
+      final url = '$baseUrl/api/update-status';
       final body = jsonEncode({
         "status": status,
         "deliveryId": orderPK,
-        if(paymentMethod!=null)"paymentMethod": paymentMethod,
-        if(reason!=null)"reason": reason,
+        if (paymentMethod != null) "paymentMethod": paymentMethod,
+        if (reason != null) "reason": reason,
       });
       final response = await http.post(
         Uri.parse(url),
