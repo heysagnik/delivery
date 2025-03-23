@@ -4,17 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../models/order_model.dart';
 
-// Color constants used throughout the widget
-class _OrderAlertColors {
-  static const Color alertRed = Color(0xFFE74C3C);
-  static const Color successGreen = Color(0xFF25B462);
-  static const Color warningYellow = Color(0xFFF39C12);
-  static const Color textPrimary = Color(0xFF212121);
-  static const Color textSecondary = Color(0xFF757575);
-  static const Color background = Color(0xFFF5F5F5);
-  static const Color cardBorder = Color(0xFFEEEEEE);
-}
-
 class OrderAlertScreen extends StatefulWidget {
   final Order order;
   final Function onAccept;
@@ -39,13 +28,9 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
   int _remainingSeconds = 0;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
-  // Animation controllers
+  // Initialize controllers without 'late'
   AnimationController? _animationController;
   Animation<double>? _animation;
-  Animation<double>? _pulseAnimation;
-
-  // UI state variables
-  bool _isProcessing = false;
 
   @override
   void initState() {
@@ -54,22 +39,34 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
     // Initialize countdown timer
     _remainingSeconds = widget.timeoutSeconds;
 
-    // Set immersive mode to grab full attention
+    // Set immersive mode
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky)
         .then((_) => _setupScreen());
   }
 
   void _setupScreen() {
-    // Initialize multiple animations
-    _setupAnimations();
+    // Initialize animation controller after the widget is mounted
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
 
-    // Trigger haptic feedback for immediate attention
+    _animation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(
+        parent: _animationController!,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _animationController!.repeat(reverse: true);
+
+    // Trigger haptic feedback
     HapticFeedback.heavyImpact();
 
-    // Play alert sound with error handling
+    // Play sound
     _playAlertSound();
 
-    // Start countdown timer
+    // Start timer
     _startTimer();
 
     // Ensure the widget rebuilds with the animations
@@ -78,35 +75,9 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
     }
   }
 
-  void _setupAnimations() {
-    // Main button animation controller
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    // Scale animation for the accept button
-    _animation = Tween<double>(begin: 1.0, end: 1.08).animate(
-      CurvedAnimation(
-        parent: _animationController!,
-        curve: Curves.easeInOut,
-      ),
-    );
-
-    // Pulse animation for the timer
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
-      CurvedAnimation(
-        parent: _animationController!,
-        curve: Curves.easeInOut,
-      ),
-    );
-
-    _animationController!.repeat(reverse: true);
-  }
-
   void _playAlertSound() async {
     try {
-      await _audioPlayer.play(AssetSource('sound/alarm2.mp3'));
+      await _audioPlayer.play(AssetSource('sounds/new_order_alert.mp3'));
       _audioPlayer.setReleaseMode(ReleaseMode.loop);
     } catch (e) {
       debugPrint('Error playing sound: $e');
@@ -119,11 +90,6 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
         setState(() {
           if (_remainingSeconds > 0) {
             _remainingSeconds--;
-
-            // Add vibration for last 5 seconds to create urgency
-            if (_remainingSeconds <= 5) {
-              HapticFeedback.lightImpact();
-            }
           } else {
             _handleTimeout();
           }
@@ -137,20 +103,13 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
     _handleDecline();
   }
 
-  Future<void> _handleAction(Function action) async {
-    // Prevent multiple taps
-    if (_isProcessing) return;
-
-    setState(() {
-      _isProcessing = true;
-    });
-
-    // Stop timer, audio and animations
+  void _handleAccept() async {
+    // First stop any ongoing processes
     _timer.cancel();
     await _stopAudioAndAnimation();
 
     // Execute the callback
-    action();
+    widget.onAccept();
 
     // Restore system UI before popping
     await _restoreSystemUi();
@@ -161,12 +120,21 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
     }
   }
 
-  void _handleAccept() async {
-    await _handleAction(widget.onAccept);
-  }
-
   void _handleDecline() async {
-    await _handleAction(widget.onDecline);
+    // First stop any ongoing processes
+    _timer.cancel();
+    await _stopAudioAndAnimation();
+
+    // Execute the callback
+    widget.onDecline();
+
+    // Restore system UI before popping
+    await _restoreSystemUi();
+
+    // Pop the screen only if context is still valid
+    if (mounted && Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
   }
 
   Future<void> _stopAudioAndAnimation() async {
@@ -180,6 +148,7 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
 
   Future<void> _restoreSystemUi() async {
     try {
+      // Restore normal UI mode
       await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     } catch (e) {
       debugPrint('Error restoring system UI: $e');
@@ -188,12 +157,18 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
 
   @override
   void dispose() {
+    // Make sure to cancel timer
     if (_timer.isActive) {
       _timer.cancel();
     }
 
+    // Dispose audio player
     _audioPlayer.dispose();
+
+    // Dispose animation controller if initialized
     _animationController?.dispose();
+
+    // Restore system UI
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
     super.dispose();
@@ -202,458 +177,248 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
+    final Color acceptColor = const Color(0xFF25B462);
+    final Color pendingColor = const Color(0xFFE74C3C);
     final double progressValue = _remainingSeconds / widget.timeoutSeconds;
-    final Size screenSize = MediaQuery.of(context).size;
 
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: _OrderAlertColors.alertRed,
+        backgroundColor: pendingColor,
         body: SafeArea(
           child: Column(
             children: [
-              _buildHeader(progressValue),
+              // Header with timer
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                color: pendingColor,
+                width: double.infinity,
+                child: Column(
+                  children: [
+                    const Text(
+                      'NEW ORDER!',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Circular progress bar with time remaining
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: Stack(
+                            children: [
+                              CircularProgressIndicator(
+                                value: progressValue,
+                                backgroundColor: Colors.white.withOpacity(0.3),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                                strokeWidth: 4,
+                              ),
+                              Center(
+                                child: Text(
+                                  '$_remainingSeconds',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Text(
+                          'seconds remaining',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Order details
               Expanded(
-                child: _buildOrderDetails(order, screenSize),
-              ),
-              _buildActionButtons(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+                child: Container(
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Order ID with icon
+                        Row(
+                          children: [
+                            const Icon(Icons.receipt_outlined,
+                                color: Colors.grey),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Order #${order.orderPK}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(height: 30),
 
-  Widget _buildHeader(double progressValue) {
-    // Determine timer color based on remaining time
-    Color timerColor = Colors.white;
-    double fontSize = 18;
+                        // Drop Location
+                        const Row(
+                          children: [
+                            Icon(Icons.pin_drop, color: Colors.grey, size: 20),
+                            SizedBox(width: 8),
+                            Text(
+                              'DROP LOCATION',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 28),
+                          child: Text(
+                            order.shippingAddress1,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              height: 1.3,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
 
-    if (_remainingSeconds <= 10) {
-      timerColor = _remainingSeconds <= 5
-          ? Colors.white
-          : _OrderAlertColors.warningYellow;
-      fontSize = _remainingSeconds <= 5 ? 22 : 20;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 24),
-      color: _OrderAlertColors.alertRed,
-      width: double.infinity,
-      child: Column(
-        children: [
-          // Gradient title for visual appeal
-          ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [Colors.white, Colors.amber],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ).createShader(bounds),
-            child: const Text(
-              'NEW ORDER!',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
-          const SizedBox(height: 18),
-
-          // Enhanced countdown timer with animation
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _pulseAnimation != null && _remainingSeconds <= 5
-                  ? ScaleTransition(
-                      scale: _pulseAnimation!,
-                      child: _buildTimerCircle(
-                          progressValue, timerColor, fontSize),
-                    )
-                  : _buildTimerCircle(progressValue, timerColor, fontSize),
-              const SizedBox(width: 12),
-              const Text(
-                'seconds remaining',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimerCircle(double progressValue, Color color, double fontSize) {
-    final isUrgent = _remainingSeconds <= 5;
-
-    return Container(
-      width: 55,
-      height: 55,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 2,
-        ),
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Progress indicator
-          CircularProgressIndicator(
-            value: progressValue,
-            backgroundColor: Colors.white.withOpacity(0.2),
-            valueColor: AlwaysStoppedAnimation<Color>(
-              isUrgent ? Colors.white : color,
-            ),
-            strokeWidth: 4,
-          ),
-
-          // Timer text
-          Text(
-            '$_remainingSeconds',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: isUrgent ? 22 : fontSize,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrderDetails(Order order, Size screenSize) {
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: screenSize.width * 0.04,
-        vertical: screenSize.height * 0.02,
-      ),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildOrderHeader(order),
-            const Divider(height: 30),
-            _buildLocationSection(order),
-            const SizedBox(height: 24),
-            _buildPaymentSection(order),
-            const SizedBox(height: 24),
-            // _buildAdditionalDetails(order),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrderHeader(Order order) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: _OrderAlertColors.successGreen.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            Icons.receipt_outlined,
-            color: _OrderAlertColors.successGreen,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Order #${order.orderPK}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: _OrderAlertColors.textPrimary,
-                ),
-              ),
-              Text(
-                'Items: ${order.items.length}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: _OrderAlertColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLocationSection(Order order) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Row(
-          children: [
-            Icon(Icons.pin_drop,
-                color: _OrderAlertColors.textSecondary, size: 20),
-            SizedBox(width: 8),
-            Text(
-              'DROP LOCATION',
-              style: TextStyle(
-                color: _OrderAlertColors.textSecondary,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: _OrderAlertColors.cardBorder),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                order.shippingAddress1,
-                style: const TextStyle(
-                  fontSize: 16,
-                  height: 1.3,
-                  color: _OrderAlertColors.textPrimary,
-                ),
-              ),
-              if (order.shippingName.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    order.shippingName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.3,
-                      color: _OrderAlertColors.textPrimary,
+                        // Payment
+                        const Row(
+                          children: [
+                            Icon(Icons.payments_outlined,
+                                color: Colors.grey, size: 20),
+                            SizedBox(width: 8),
+                            Text(
+                              'PAYMENT',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 28),
+                          child: Text(
+                            '₹${order.totalAmount.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF25B462),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
+              ),
+
+              // Action buttons
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    // Decline button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _handleDecline,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: pendingColor,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: pendingColor, width: 2),
+                          ),
+                        ),
+                        child: const Text(
+                          'DECLINE',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Accept button with animation
+                    Expanded(
+                      child: _animation != null
+                          ? ScaleTransition(
+                              scale: _animation!,
+                              child: _buildAcceptButton(acceptColor),
+                            )
+                          : _buildAcceptButton(acceptColor),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildPaymentSection(Order order) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Row(
-          children: [
-            Icon(Icons.payments_outlined,
-                color: _OrderAlertColors.textSecondary, size: 20),
-            SizedBox(width: 8),
-            Text(
-              'PAYMENT',
-              style: TextStyle(
-                color: _OrderAlertColors.textSecondary,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '₹${order.totalAmount.toStringAsFixed(2)}',
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: _OrderAlertColors.successGreen,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: _OrderAlertColors.successGreen.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                order.paymentMode,
-                style: const TextStyle(
-                  color: _OrderAlertColors.successGreen,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // Widget _buildAdditionalDetails(Order order) {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       const Row(
-  //         children: [
-  //           Icon(Icons.info_outline,
-  //               color: _OrderAlertColors.textSecondary, size: 20),
-  //           SizedBox(width: 8),
-  //           Text(
-  //             'DELIVERY DETAILS',
-  //             style: TextStyle(
-  //               color: _OrderAlertColors.textSecondary,
-  //               fontWeight: FontWeight.bold,
-  //               fontSize: 14,
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //       const SizedBox(height: 12),
-  //     ],
-  //   );
-  // }
-
-  // Widget _buildDetailRow(String label, String value) {
-  //   return Row(
-  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //     children: [
-  //       Text(
-  //         label,
-  //         style: const TextStyle(
-  //           color: _OrderAlertColors.textSecondary,
-  //           fontSize: 14,
-  //         ),
-  //       ),
-  //       Text(
-  //         value,
-  //         style: const TextStyle(
-  //           fontWeight: FontWeight.w600,
-  //           fontSize: 14,
-  //           color: _OrderAlertColors.textPrimary,
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
-  Widget _buildActionButtons() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildDeclineButton(),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _animation != null
-                ? ScaleTransition(
-                    scale: _animation!,
-                    child: _buildAcceptButton(),
-                  )
-                : _buildAcceptButton(),
-          ),
-        ],
       ),
     );
   }
 
-  Widget _buildDeclineButton() {
+  Widget _buildAcceptButton(Color acceptColor) {
     return ElevatedButton(
-      onPressed: _isProcessing ? null : _handleDecline,
+      onPressed: _handleAccept,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: _OrderAlertColors.alertRed,
-        disabledBackgroundColor: Colors.grey.shade300,
-        disabledForegroundColor: Colors.grey.shade600,
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: BorderSide(
-              color: _isProcessing
-                  ? Colors.grey.shade400
-                  : _OrderAlertColors.alertRed,
-              width: 2),
-        ),
-      ),
-      child: _isProcessing
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  _OrderAlertColors.textSecondary,
-                ),
-              ),
-            )
-          : const Text(
-              'DECLINE',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-    );
-  }
-
-  Widget _buildAcceptButton() {
-    return ElevatedButton(
-      onPressed: _isProcessing ? null : _handleAccept,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _OrderAlertColors.successGreen,
+        backgroundColor: acceptColor,
         foregroundColor: Colors.white,
-        disabledBackgroundColor: Colors.grey.shade300,
-        disabledForegroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 18),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         elevation: 4,
-        shadowColor: _OrderAlertColors.successGreen.withOpacity(0.5),
+        shadowColor: acceptColor.withOpacity(0.5),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
-      child: _isProcessing
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
-            )
-          : const Text(
-              'ACCEPT',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
+      child: const Text(
+        'ACCEPT',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
+      ),
     );
   }
 }
