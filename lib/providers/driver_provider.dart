@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/driver_model.dart';
 
 class DriverProvider extends ChangeNotifier {
+  String baseUrl = 'https://api.daykart.outlfy.com';
   bool _isLive = false;
 
   bool get isLive => _isLive;
@@ -33,17 +34,14 @@ class DriverProvider extends ChangeNotifier {
       final url = 'https://daykart.com/api/driver/profile';
       final response = await http.get(headers: {
         "Content-Type": "application/json",
-        "Authorization": "$token" ?? '',
+        "Authorization": "$token",
       }, Uri.parse(url));
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
-        print(jsonData);
-
         if (jsonData['success'] == true) {
           return Driver.fromJson(jsonData['data']);
-        }
-        else {
+        } else {
           throw Exception('Failed to load driver details');
         }
       } else {
@@ -66,17 +64,17 @@ class DriverProvider extends ChangeNotifier {
       final response = await http.put(
         Uri.parse(apiUrl),
         headers: {
-          "Authorization": "$token" ?? '',
+          "Authorization": "$token",
           "Content-Type": "application/json",
         },
         body: jsonEncode({"isLive": isOnline}),
       );
 
-      final responseData = jsonDecode(response.body); // ✅ Proper JSON parsing
+      final responseData = jsonDecode(response.body);
       if (responseData['success'] == true) {
         _isLive = isOnline; // Update local state
         notifyListeners(); // Notify UI to update
-        print("Status updated successfully: isLive = $isLive");
+        debugPrint("Status updated successfully: isLive = $isLive");
         fetchDriverDetails();
       } else {
         debugPrint("Failed to update status: ${response.body}");
@@ -88,7 +86,7 @@ class DriverProvider extends ChangeNotifier {
 
   Future<List<Map<String, dynamic>>> fetchAllDoneDeliveries() async {
     try {
-      final url = 'http://taskmaster.outlfy.com/api/delivered-deliveries';
+      final url = '$baseUrl/api/delivered-deliveries';
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {

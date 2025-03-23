@@ -40,9 +40,8 @@ class _AppScreenState extends State<AppScreen> {
   }
 
   Future<void> _loadOnlineStatus() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      isLive = prefs.getBool('isLive') ?? false;
+      Provider.of<DriverProvider>(context, listen: false).fetchDriverDetails();
     });
 
     // Update driver provider with saved status
@@ -95,15 +94,6 @@ class _AppScreenState extends State<AppScreen> {
             width: 110,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(PhosphorIconsFill.bell, size: 24),
-            onPressed: () {
-              // Notification functionality
-            },
-          ),
-          const SizedBox(width: 16),
-        ],
       ),
       body: IndexedStack(
         index: _selectedIndex,

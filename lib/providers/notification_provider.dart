@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationProvider with ChangeNotifier {
-
+  String baseUrl='https://api.daykart.outlfy.com';
   Future<String?> getSelectedDriverId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('id');
@@ -17,7 +17,7 @@ class NotificationProvider with ChangeNotifier {
 
   Future<void> subscribeNotification() async {
     try {
-    final Uri url = Uri.parse('https://taskmaster.outlfy.com/api/driver/subscribe');
+    final Uri url = Uri.parse('$baseUrl/api/driver/subscribe');
     final String? token = await getToken();
     final String? id = await getSelectedDriverId();
 
