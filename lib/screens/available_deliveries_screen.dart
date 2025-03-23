@@ -58,7 +58,7 @@ class _AvailableDeliveriesState extends State<AvailableDeliveries> {
           onAccept: () async {
             await orderProvider.assignOrder(order.id);
             await orderProvider.pendingOrderByDriver();
-            Navigator.of(context).pop(); // Close the alert
+            Navigator.of(context).pop();
             Navigator.pushReplacementNamed(context, '/appScreen');
           },
           onDecline: () {
