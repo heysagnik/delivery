@@ -384,12 +384,12 @@ class _OrderCardState extends State<OrderCard> {
 
             const Divider(height: 24),
 
-            // Side by side layout for Order Date and Shipping Address
+            // Fixed IntrinsicHeight section to prevent overflow
             IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Created On Timeline - Left side
+                  // Created On Timeline - Left side - FIXED OVERFLOW HERE
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.all(12),
@@ -404,7 +404,10 @@ class _OrderCardState extends State<OrderCard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          // This is the overflowing Row (line 457)
+                          Wrap(
+                            // Changed from Row to Wrap
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Icon(Icons.calendar_today,
                                   size: 20,
@@ -417,6 +420,8 @@ class _OrderCardState extends State<OrderCard> {
                                   fontWeight: FontWeight.w600,
                                   color: Theme.of(context).primaryColor,
                                 ),
+                                overflow: TextOverflow
+                                    .ellipsis, // Added overflow handling
                               ),
                             ],
                           ),
@@ -428,6 +433,9 @@ class _OrderCardState extends State<OrderCard> {
                               color: Colors.black87,
                               fontWeight: FontWeight.w500,
                             ),
+                            overflow: TextOverflow
+                                .ellipsis, // Added overflow handling
+                            maxLines: 2, // Limited to 2 lines
                           ),
                         ],
                       ),
@@ -440,6 +448,7 @@ class _OrderCardState extends State<OrderCard> {
                     color: Colors.grey.shade300,
                   ),
 
+                  // Shipping Address - Right side - Adding overflow protection here too
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.all(12),
@@ -454,7 +463,9 @@ class _OrderCardState extends State<OrderCard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          Wrap(
+                            // Changed from Row to Wrap
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Icon(Icons.location_on,
                                   size: 20,
@@ -467,11 +478,12 @@ class _OrderCardState extends State<OrderCard> {
                                   fontWeight: FontWeight.w600,
                                   color: Theme.of(context).primaryColor,
                                 ),
+                                overflow: TextOverflow
+                                    .ellipsis, // Added overflow handling
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
-                        
                           Text(
                             "${widget.order.shippingName}\n${widget.order.shippingAddress1}\n${widget.order.shippingPhone}",
                             style: TextStyle(
@@ -479,7 +491,8 @@ class _OrderCardState extends State<OrderCard> {
                               color: Colors.grey[800],
                               fontWeight: FontWeight.w500,
                             ),
-                            maxLines: 2,
+                            maxLines:
+                                3, // Increased to 3 lines to fit more content
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
