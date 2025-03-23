@@ -320,9 +320,8 @@ class NotificationService {
   void _showOrderAlert(BuildContext context, Order order) {
     if (_alertCurrentlyShowing) return;
     _alertCurrentlyShowing = true;
-
     _playAlertSound();
-    HapticFeedback.heavyImpact();
+    HapticFeedback.vibrate();
 
     // Cancel any existing notification
     _localNotifications.cancel(0);
@@ -343,7 +342,7 @@ class NotificationService {
             await orderProvider.pendingOrderByDriver();
 
             Navigator.of(context).pop();
-            Navigator.pushReplacementNamed(context, '/availableDelivery');
+            Navigator.pushReplacementNamed(context, '/appScreen');
           },
           onDecline: () {
             _stopAlertSound();
