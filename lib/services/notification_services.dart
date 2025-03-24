@@ -318,7 +318,13 @@ class NotificationService {
 
   /// Displays the fullscreen order alert dialog
   void _showOrderAlert(BuildContext context, Order order) {
-    if (_alertCurrentlyShowing) return;
+    debugPrint('📱 Showing order alert for Order #${order.orderPK}');
+
+    if (_alertCurrentlyShowing) {
+      debugPrint('⚠️ Alert already showing, ignoring request');
+      return;
+    }
+
     _alertCurrentlyShowing = true;
     _playAlertSound();
     HapticFeedback.vibrate();
@@ -332,19 +338,44 @@ class NotificationService {
         builder: (context) => OrderAlertScreen(
           order: order,
           onAccept: () async {
+            debugPrint('✅ Order #${order.id} ACCEPTED');
+
+            // First clean up resources
             _stopAlertSound();
             _localNotifications.cancel(0);
             _alertCurrentlyShowing = false;
 
-            final orderProvider =
-                Provider.of<OrderProvider>(context, listen: false);
-            await orderProvider.assignOrder(order.id);
-            await orderProvider.pendingOrderByDriver();
+            try {
+              // Get order provider
+              final orderProvider =
+                  Provider.of<OrderProvider>(context, listen: false);
 
-            Navigator.of(context).pop();
-            Navigator.pushReplacementNamed(context, '/appScreen');
+              // Log current state
+              debugPrint('📋 Assigning order ID: ${order.id}');
+
+              // Assign order to current driver
+              await orderProvider.assignOrder(order.id);
+              debugPrint('✓ Order assigned successfully');
+
+              // Fetch pending orders
+              await orderProvider.pendingOrderByDriver();
+              debugPrint('✓ Pending orders fetched');
+
+              // Navigate to app screen - USING REPLACEMENT
+              if (context.mounted) {
+                debugPrint('🔄 Navigating to app screen');
+                Navigator.pushReplacementNamed(context, '/appScreen');
+              }
+            } catch (e) {
+              debugPrint('❌ Error during order acceptance: $e');
+              // Still need to clean up the UI even if the order assignment fails
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
+            }
           },
           onDecline: () {
+            debugPrint('❌ Order #${order.id} DECLINED');
             _stopAlertSound();
             _localNotifications.cancel(0);
             _alertCurrentlyShowing = false;

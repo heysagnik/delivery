@@ -8,7 +8,8 @@ import '../models/order_model.dart';
 import '../models/order_model2.dart';
 
 class OrderProvider extends ChangeNotifier {
-  final String baseUrl = 'https://api.daykart.outlfy.com';
+  // final String baseUrl = 'https://api.daykart.outlfy.com';
+  final String baseUrl = 'http://172.25.214.96:3001';
   final List<Order2> _pendingDeliveries = [];
   List<Order2> get pendingDeliveries => _pendingDeliveries;
   Order? _latestNewOrder;

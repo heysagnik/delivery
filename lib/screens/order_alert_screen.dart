@@ -276,7 +276,7 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
                                 color: Colors.grey),
                             const SizedBox(width: 8),
                             Text(
-                              'Order #${order.orderPK}',
+                              'Order #${order.id}',
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -305,7 +305,7 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
                         Padding(
                           padding: const EdgeInsets.only(left: 28),
                           child: Text(
-                            order.shippingAddress1,
+                            order.shippingName,
                             style: const TextStyle(
                               fontSize: 16,
                               height: 1.3,
