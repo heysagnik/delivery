@@ -41,7 +41,10 @@ class Order {
       orderPK: json['orderPK'] ?? 0,
       deliveryBoy: DeliveryBoy.fromJson(json['deliveryBoy'] ?? {}),
       deliveryStatus: json['deliveryStatus'] ?? "",
-      items: (json['items'] as List?)?.map((item) => Item.fromJson(item)).toList() ?? [],
+      items: (json['items'] as List?)
+              ?.map((item) => Item.fromJson(item))
+              .toList() ??
+          [],
       onlineReferenceNo: json['onlineReferenceNo'] ?? 0,
       ordTimestamp: json['ordTimestamp'] ?? 0,
       paymentMode: json['paymentMode'] ?? "",

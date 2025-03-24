@@ -3,7 +3,9 @@ import 'package:intl/intl.dart';
 import 'dart:async';
 import '../models/order_model.dart';
 
-/// A loading indicator widget.
+/// --------------------------------------------------------------
+/// Section: Loading, Error & Empty Widgets
+/// --------------------------------------------------------------
 class LoadingIndicator extends StatelessWidget {
   const LoadingIndicator({super.key});
   @override
@@ -27,7 +29,6 @@ class LoadingIndicator extends StatelessWidget {
   }
 }
 
-/// A widget for showing an error message.
 class ErrorMessage extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
@@ -68,7 +69,6 @@ class ErrorMessage extends StatelessWidget {
   }
 }
 
-/// A widget for showing empty data.
 class EmptyDataWidget extends StatelessWidget {
   const EmptyDataWidget({super.key});
   @override
@@ -92,9 +92,9 @@ class EmptyDataWidget extends StatelessWidget {
   }
 }
 
-/// A separate widget to display the countdown timer.
-/// It calculates the remaining time based on the order's createdAt time plus 2 minutes.
-/// Once the countdown finishes, the widget hides itself.
+/// --------------------------------------------------------------
+/// Section: Order Countdown Timer
+/// --------------------------------------------------------------
 class OrderCountdownTimer extends StatefulWidget {
   final DateTime createdAt;
   const OrderCountdownTimer({super.key, required this.createdAt});
@@ -177,67 +177,63 @@ class _OrderCountdownTimerState extends State<OrderCountdownTimer>
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: timeColor.withOpacity(0.3), width: 1.5),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          children: [
-            Icon(
-              Icons.timer,
-              color: timeColor,
-              size: 24,
-            ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Time Remaining:',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey,
-                  ),
+      padding: const EdgeInsets.all(12.0),
+      child: Row(
+        children: [
+          Icon(Icons.timer, color: timeColor, size: 24),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Time Remaining:',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey,
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  timeDisplay,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: timeColor,
-                  ),
-                ),
-              ],
-            ),
-            const Spacer(),
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: AnimatedBuilder(
-                animation: _animationController,
-                builder: (context, child) {
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      CircularProgressIndicator(
-                        value: _animation.value,
-                        strokeWidth: 4,
-                        backgroundColor: Colors.grey.shade300,
-                        valueColor: AlwaysStoppedAnimation<Color>(timeColor),
-                      ),
-                    ],
-                  );
-                },
               ),
+              const SizedBox(height: 3),
+              Text(
+                timeDisplay,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: timeColor,
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          SizedBox(
+            width: 40,
+            height: 40,
+            child: AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CircularProgressIndicator(
+                      value: _animation.value,
+                      strokeWidth: 4,
+                      backgroundColor: Colors.grey.shade300,
+                      valueColor: AlwaysStoppedAnimation<Color>(timeColor),
+                    ),
+                  ],
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// A widget to display a list of order items.
+/// --------------------------------------------------------------
+/// Section: Order Items List
+/// --------------------------------------------------------------
 class OrderItemList extends StatelessWidget {
   final List<Item> items;
   const OrderItemList({super.key, required this.items});
@@ -262,15 +258,11 @@ class OrderItemList extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
                 ),
-                Text(
-                  '${item.quantity}',
-                  style: TextStyle(color: Colors.grey[700]),
-                ),
+                Text('${item.quantity}',
+                    style: TextStyle(color: Colors.grey[700])),
                 const SizedBox(width: 8),
-                Text(
-                  '₹ ${item.price}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
+                Text('₹ ${item.price}',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
           );
@@ -280,13 +272,15 @@ class OrderItemList extends StatelessWidget {
   }
 }
 
-/// The OrderCard widget now uses the separated [OrderCountdownTimer] and [OrderItemList]
-/// for better scalability.
+/// --------------------------------------------------------------
+/// Section: Order Card Widget
+/// --------------------------------------------------------------
 class OrderCard extends StatefulWidget {
   final Order order;
   final Color acceptColor;
   final Color pendingColor;
   final Future<void> Function() onAccept;
+
   const OrderCard({
     super.key,
     required this.order,
@@ -294,25 +288,25 @@ class OrderCard extends StatefulWidget {
     required this.pendingColor,
     required this.onAccept,
   });
+
   @override
   State<OrderCard> createState() => _OrderCardState();
 }
 
 class _OrderCardState extends State<OrderCard> {
-  // New state variable to ensure the button is only clicked once.
   bool _isButtonClicked = false;
 
-  // Helper method to format date.
+  // Formats the date string for display.
   String _formatDateTime(String dateTimeString) {
     try {
       final dateTime = DateTime.parse(dateTimeString);
       return DateFormat('dd MMM yyyy, hh:mm a').format(dateTime.toLocal());
-    } catch (e) {
+    } catch (_) {
       return dateTimeString;
     }
   }
 
-  // Handles the accept action and disables the button after clicking.
+  // Handles the order acceptance action and prevents multiple clicks.
   Future<void> _handleAccept() async {
     if (_isButtonClicked) return;
     setState(() {
@@ -335,7 +329,7 @@ class _OrderCardState extends State<OrderCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Row (Order ID and Delivery Status)
+            // Header Row: Order ID and Delivery Status
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -365,48 +359,37 @@ class _OrderCardState extends State<OrderCard> {
                   label: Text(
                     widget.order.deliveryStatus,
                     style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                        color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   backgroundColor: widget.pendingColor,
                   visualDensity: VisualDensity.compact,
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
-            // Countdown Timer Section (modularized)
+            // Countdown Timer Section
             OrderCountdownTimer(
-              createdAt: DateTime.parse(widget.order.createdAt),
-            ),
-
+                createdAt: DateTime.parse(widget.order.createdAt)),
             const Divider(height: 24),
-
-            // Fixed IntrinsicHeight section to prevent overflow
+            // Order Details: Creation time and Shipping Address
             IntrinsicHeight(
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Created On Timeline - Left side - FIXED OVERFLOW HERE
+                  // Created On Information
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade50,
                         borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(12),
-                          bottomLeft: Radius.circular(12),
-                        ),
+                            topLeft: Radius.circular(12),
+                            bottomLeft: Radius.circular(12)),
                         border: Border.all(color: Colors.grey.shade200),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // This is the overflowing Row (line 457)
                           Wrap(
-                            // Changed from Row to Wrap
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Icon(Icons.calendar_today,
@@ -420,8 +403,7 @@ class _OrderCardState extends State<OrderCard> {
                                   fontWeight: FontWeight.w600,
                                   color: Theme.of(context).primaryColor,
                                 ),
-                                overflow: TextOverflow
-                                    .ellipsis, // Added overflow handling
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -429,42 +411,36 @@ class _OrderCardState extends State<OrderCard> {
                           Text(
                             _formatDateTime(widget.order.createdAt),
                             style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.black87,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            overflow: TextOverflow
-                                .ellipsis, // Added overflow handling
-                            maxLines: 2, // Limited to 2 lines
+                                fontSize: 14,
+                                color: Colors.black87,
+                                fontWeight: FontWeight.w500),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     ),
                   ),
-
                   Container(
                     height: double.infinity,
                     width: 1,
                     color: Colors.grey.shade300,
                   ),
-
-                  // Shipping Address - Right side - Adding overflow protection here too
+                  // Shipping Address Information
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade50,
                         borderRadius: const BorderRadius.only(
-                          topRight: Radius.circular(12),
-                          bottomRight: Radius.circular(12),
-                        ),
+                            topRight: Radius.circular(12),
+                            bottomRight: Radius.circular(12)),
                         border: Border.all(color: Colors.grey.shade200),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Wrap(
-                            // Changed from Row to Wrap
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Icon(Icons.location_on,
@@ -478,8 +454,7 @@ class _OrderCardState extends State<OrderCard> {
                                   fontWeight: FontWeight.w600,
                                   color: Theme.of(context).primaryColor,
                                 ),
-                                overflow: TextOverflow
-                                    .ellipsis, // Added overflow handling
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -491,8 +466,7 @@ class _OrderCardState extends State<OrderCard> {
                               color: Colors.grey[800],
                               fontWeight: FontWeight.w500,
                             ),
-                            maxLines:
-                                3, // Increased to 3 lines to fit more content
+                            maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -502,10 +476,8 @@ class _OrderCardState extends State<OrderCard> {
                 ],
               ),
             ),
-
             const SizedBox(height: 16),
-
-            // Total Amount Row - Enhanced appearance
+            // Total Amount Section
             Container(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
               decoration: BoxDecoration(
@@ -523,28 +495,24 @@ class _OrderCardState extends State<OrderCard> {
                       Text(
                         'Total Amount:',
                         style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[800],
-                          fontWeight: FontWeight.w500,
-                        ),
+                            fontSize: 14,
+                            color: Colors.grey[800],
+                            fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
                   Text(
                     '₹${widget.order.totalAmount}',
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
-                    ),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).primaryColor),
                   ),
                 ],
               ),
             ),
-
             const SizedBox(height: 16),
-
-            // Items List Header
+            // Items List Section
             Row(
               children: [
                 Icon(Icons.shopping_bag_outlined,
@@ -553,10 +521,9 @@ class _OrderCardState extends State<OrderCard> {
                 Text(
                   'Items:',
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColor,
-                  ),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor),
                 ),
                 const Spacer(),
                 Text(
@@ -571,8 +538,7 @@ class _OrderCardState extends State<OrderCard> {
             const SizedBox(height: 8),
             OrderItemList(items: widget.order.items),
             const SizedBox(height: 20),
-
-            // Accept Button - Full width and more prominent
+            // Accept Order Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -585,8 +551,7 @@ class _OrderCardState extends State<OrderCard> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                      borderRadius: BorderRadius.circular(10)),
                   disabledBackgroundColor: Colors.grey,
                 ),
               ),

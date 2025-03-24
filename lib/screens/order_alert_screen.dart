@@ -104,20 +104,14 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
   }
 
   void _handleAccept() async {
-    // First stop any ongoing processes
     _timer.cancel();
     await _stopAudioAndAnimation();
 
-    // Execute the callback
-    widget.onAccept();
+    // Await the onAccept callback to ensure API calls complete
+    await widget.onAccept();
 
-    // Restore system UI before popping
+    // Restore system UI (if needed) and let navigation be handled by the callback
     await _restoreSystemUi();
-
-    // Pop the screen only if context is still valid
-    if (mounted && Navigator.canPop(context)) {
-      Navigator.of(context).pop();
-    }
   }
 
   void _handleDecline() async {
@@ -276,7 +270,7 @@ class _OrderAlertScreenState extends State<OrderAlertScreen>
                                 color: Colors.grey),
                             const SizedBox(width: 8),
                             Text(
-                              'Order #${order.id}',
+                              'Order #${order.orderPK}',
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
