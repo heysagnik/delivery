@@ -3,7 +3,6 @@ import 'package:delivery/providers/driver_provider.dart';
 import 'package:delivery/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/profile_widgets.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -36,22 +35,6 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         isLoading = false;
       });
-    }
-  }
-
-  Future<void> _logout() async {
-    try {
-      // Clear SharedPreferences data
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-
-      if (mounted) {
-        // Navigate to login screen and remove all previous routes
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil('/login', (route) => false);
-      }
-    } catch (error) {
-      showSnackBar(context, 'Error logging out: $error');
     }
   }
 

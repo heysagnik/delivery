@@ -9,8 +9,9 @@ import '../models/driver_model.dart';
 class DriverProvider extends ChangeNotifier {
   String baseUrl = 'https://api.daykart.outlfy.com';
   bool _isLive = false;
-
+  Driver? _driver;
   bool get isLive => _isLive;
+  Driver? get driver => _driver;
 
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -21,12 +22,6 @@ class DriverProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('id');
   }
-
-  // Future<void> _loadOnlineStatus() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   _isLive = prefs.getBool('isLive') ?? false;
-  //   notifyListeners();
-  // }
 
   Future<Driver> fetchDriverDetails() async {
     try {
@@ -40,6 +35,9 @@ class DriverProvider extends ChangeNotifier {
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
         if (jsonData['success'] == true) {
+          _driver = Driver.fromJson(jsonData['data']);
+          _isLive = _driver!.isLive;
+          notifyListeners();
           return Driver.fromJson(jsonData['data']);
         } else {
           throw Exception('Failed to load driver details');
